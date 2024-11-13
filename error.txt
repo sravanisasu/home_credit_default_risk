@@ -1,0 +1,16 @@
+Cloning into 'home_credit_default_risk'...
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 0), reused 4 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (4/4), done.
+Downloading home-credit-default-risk.zip (722 MB)
+Error downloading object: home-credit-default-risk.zip (4e7a243): Smudge error: Error downloading home-credit-default-risk.zip (4e7a243b13f6e3d40f682a9a0cfd59c70910ca6c5a4289f71ca1f25efbd8e3de): LFS: Get "https://github-cloud.githubusercontent.com/alambic/media/796972020/4e/7a/4e7a243b13f6e3d40f682a9a0cfd59c70910ca6c5a4289f71ca1f25efbd8e3de?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA5BA2674WPWWEFGQ5%2F20241113%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241113T091726Z&X-Amz-Expires=3600&X-Amz-Signature=02bd156ce0c917159100b642997a641b003bf75cffd193f30e7144adaf032c12&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=887681200&token=1": x509: certificate signed by unknown authority
+
+Errors logged to 'C:\Users\Sravani.Sasubilli\home_credit_default_risk\.git\lfs\logs\20241113T144726.8517111.log'.
+Use `git lfs logs last` to view the log.
+error: external filter 'git-lfs filter-process' failed
+fatal: home-credit-default-risk.zip: smudge filter lfs failed
+warning: Clone succeeded, but checkout failed.
+You can inspect what was checked out with 'git status'
+and retry with 'git restore --source=HEAD :/'
