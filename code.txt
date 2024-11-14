@@ -1,0 +1,483 @@
+Here's how you can split the provided code into data engineering and feature engineering sections for `df` and `test_df` as PySpark DataFrames:
+
+### Data Engineering Code
+
+```python
+# Read data from Spark tables
+df = spark.read.table("train_table_name")
+test_df = spark.read.table("test_table_name")
+
+# Print sample sizes (these will be transformed to show counts)
+print("Train samples: {}, test samples: {}".format(df.count(), test_df.count()))
+
+# Combine train and test data
+df = df.unionByName(test_df).withColumn("index", monotonically_increasing_id())
+
+# Optional: Remove rows where CODE_GENDER is 'XNA'
+df = df.filter(df['CODE_GENDER'] != 'XNA')
+
+# Categorical features with Binary encoding using factorization
+from pyspark.ml.feature import StringIndexer
+
+binary_features = ['CODE_GENDER', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY']
+for feature in binary_features:
+    indexer = StringIndexer(inputCol=feature, outputCol=f"{feature}_index")
+    df = indexer.fit(df).transform(df)
+
+# Drop original columns and rename new ones
+for feature in binary_features:
+    df = df.drop(feature).withColumnRenamed(f"{feature}_index", feature)
+```
+
+### Feature Engineering Code
+
+```python
+from pyspark.sql.functions import col, when
+
+# Replace specific value in DAYS_EMPLOYED with NaN
+df = df.withColumn('DAYS_EMPLOYED', when(df['DAYS_EMPLOYED'] == 365243, None).otherwise(df['DAYS_EMPLOYED']))
+
+# Create new features (percentages)
+df = df.withColumn('DAYS_EMPLOYED_PERC', col('DAYS_EMPLOYED') / col('DAYS_BIRTH'))
+df = df.withColumn('INCOME_CREDIT_PERC', col('AMT_INCOME_TOTAL') / col('AMT_CREDIT'))
+df = df.withColumn('INCOME_PER_PERSON', col('AMT_INCOME_TOTAL') / col('CNT_FAM_MEMBERS'))
+df = df.withColumn('ANNUITY_INCOME_PERC', col('AMT_ANNUITY') / col('AMT_INCOME_TOTAL'))
+df = df.withColumn('PAYMENT_RATE', col('AMT_ANNUITY') / col('AMT_CREDIT'))
+
+# Optional: Drop unnecessary columns or delete test_df if needed
+# test_df.unpersist() or del test_df if using a notebook
+```
+
+### Explanation:
+- **Data Engineering**: Involves reading data, merging the DataFrames, filtering, and encoding categorical features.
+- **Feature Engineering**: Focuses on creating new features, handling missing or specific values, and generating feature ratios.
+
+Make sure to adjust table names and add any necessary imports or configurations specific to your Spark environment.
+
+
+
+  Here's how you can break down the code into data engineering and feature engineering sections for `bureau` and `bb` read using `spark.read.table`:
+
+### Data Engineering Code
+
+```python
+from pyspark.sql import functions as F
+from pyspark.ml.feature import StringIndexer
+from pyspark.sql import Window
+
+# Read data from Spark tables
+bureau = spark.read.table("bureau_table_name")
+bb = spark.read.table("bureau_balance_table_name")
+
+# Print the initial sample counts (if needed)
+print("Bureau samples: {}, Bureau Balance samples: {}".format(bureau.count(), bb.count()))
+
+# One-hot encoding for categorical features using StringIndexer for Spark
+def one_hot_encoder(df, nan_as_category=True):
+    categorical_cols = [field for (field, dtype) in df.dtypes if dtype == 'string']
+    for col in categorical_cols:
+        indexer = StringIndexer(inputCol=col, outputCol=f"{col}_index")
+        df = indexer.fit(df).transform(df)
+    return df, categorical_cols
+
+# Apply one-hot encoding to `bb` and `bureau`
+bb, bb_cat = one_hot_encoder(bb, nan_as_category)
+bureau, bureau_cat = one_hot_encoder(bureau, nan_as_category)
+```
+
+### Feature Engineering Code
+
+```python
+# Bureau balance aggregations and merge with bureau
+# Define aggregation expressions for Spark
+bb_agg = (bb
+    .groupby('SK_ID_BUREAU')
+    .agg(
+        F.min('MONTHS_BALANCE').alias('MONTHS_BALANCE_MIN'),
+        F.max('MONTHS_BALANCE').alias('MONTHS_BALANCE_MAX'),
+        F.count('MONTHS_BALANCE').alias('MONTHS_BALANCE_SIZE'),
+        *[F.mean(col).alias(f"{col}_MEAN") for col in bb_cat]
+    ))
+
+# Join aggregated `bb` with `bureau` on `SK_ID_BUREAU`
+bureau = bureau.join(bb_agg, on='SK_ID_BUREAU', how='left')
+
+# Drop `SK_ID_BUREAU` column
+bureau = bureau.drop('SK_ID_BUREAU')
+
+# Optional: Collect garbage if running in a notebook to free memory
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - Reading the `bureau` and `bb` DataFrames from Spark tables.
+  - Applying one-hot encoding to handle categorical features (replacing them with indexed columns).
+- **Feature Engineering**:
+  - Aggregating the `bb` DataFrame by `SK_ID_BUREAU` with specified functions.
+  - Merging the aggregated `bb` DataFrame with the `bureau` DataFrame using a left join.
+  - Dropping unnecessary columns like `SK_ID_BUREAU`.
+
+This approach makes use of PySpark functions for handling large-scale data, avoiding memory issues common with pandas-based operations.
+
+
+
+  Here's how you can adapt the code for PySpark and break it down into data engineering and feature engineering sections:
+
+### Data Engineering Code
+
+```python
+# Read bureau and bureau_balance data using Spark
+bureau = spark.read.table("bureau_table_name")
+bb = spark.read.table("bureau_balance_table_name")
+
+# Optional: Print the sample sizes for verification
+print("Bureau samples: {}, Bureau Balance samples: {}".format(bureau.count(), bb.count()))
+
+# One-hot encoding for categorical features (already done in the previous step)
+# Ensure that `bureau` and `bb` have had one-hot encoding applied before proceeding
+```
+
+### Feature Engineering Code
+
+```python
+from pyspark.sql import functions as F
+
+# Define numerical aggregation functions for Spark
+num_aggregations = {
+    'DAYS_CREDIT': ['min', 'max', 'mean', 'variance'],
+    'DAYS_CREDIT_ENDDATE': ['min', 'max', 'mean'],
+    'DAYS_CREDIT_UPDATE': ['mean'],
+    'CREDIT_DAY_OVERDUE': ['max', 'mean'],
+    'AMT_CREDIT_MAX_OVERDUE': ['mean'],
+    'AMT_CREDIT_SUM': ['max', 'mean', 'sum'],
+    'AMT_CREDIT_SUM_DEBT': ['max', 'mean', 'sum'],
+    'AMT_CREDIT_SUM_OVERDUE': ['mean'],
+    'AMT_CREDIT_SUM_LIMIT': ['mean', 'sum'],
+    'AMT_ANNUITY': ['max', 'mean'],
+    'CNT_CREDIT_PROLONG': ['sum'],
+    'MONTHS_BALANCE_MIN': ['min'],
+    'MONTHS_BALANCE_MAX': ['max'],
+    'MONTHS_BALANCE_SIZE': ['mean', 'sum']
+}
+
+# Apply numerical aggregations
+agg_exprs = [F.expr(f"{agg}({col})").alias(f"BURO_{col}_{agg.upper()}")
+             for col, aggs in num_aggregations.items()
+             for agg in aggs]
+
+bureau_agg = bureau.groupby('SK_ID_CURR').agg(*agg_exprs)
+
+# Handle categorical aggregations
+cat_aggregations = {cat: 'mean' for cat in bureau_cat + [f"{col}_MEAN" for col in bb_cat]}
+cat_exprs = [F.mean(col).alias(f"BURO_{col}_MEAN") for col in cat_aggregations]
+
+bureau_agg = bureau_agg.select('SK_ID_CURR', *agg_exprs, *cat_exprs)
+
+# Active credits aggregation
+active = bureau.filter(bureau['CREDIT_ACTIVE_Active'] == 1)
+active_agg = active.groupby('SK_ID_CURR').agg(*[F.expr(f"{agg}({col})").alias(f"ACTIVE_{col}_{agg.upper()}")
+                                                 for col, aggs in num_aggregations.items()
+                                                 for agg in aggs])
+bureau_agg = bureau_agg.join(active_agg, on='SK_ID_CURR', how='left')
+
+# Closed credits aggregation
+closed = bureau.filter(bureau['CREDIT_ACTIVE_Closed'] == 1)
+closed_agg = closed.groupby('SK_ID_CURR').agg(*[F.expr(f"{agg}({col})").alias(f"CLOSED_{col}_{agg.upper()}")
+                                                 for col, aggs in num_aggregations.items()
+                                                 for agg in aggs])
+bureau_agg = bureau_agg.join(closed_agg, on='SK_ID_CURR', how='left')
+
+# Optional: Collect garbage (uncomment in notebook if needed)
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - Reading data from Spark tables and ensuring the data is pre-processed with one-hot encoding (as needed).
+- **Feature Engineering**:
+  - Performing numerical aggregations using PySpark's `agg()` and `expr()` functions.
+  - Aggregating active and closed credits separately using filtering and grouping.
+  - Merging the resulting DataFrames with the main `bureau_agg` DataFrame using `join()`.
+
+**Note**: The `variance` function is used instead of `var` to align with PySpark's built-in functions.
+
+
+
+
+  Here's how you can break down the code into data engineering and feature engineering for PySpark, using `prev` as a Spark DataFrame:
+
+### Data Engineering Code
+
+```python
+# Read the previous applications data using Spark
+prev = spark.read.table("previous_applications_table_name")
+
+# One-hot encoding for categorical features (assuming one-hot encoder function has been defined)
+prev, cat_cols = one_hot_encoder(prev, nan_as_category=True)
+
+# Replace 365.243 with NaN (handling with PySpark)
+prev = (prev
+    .withColumn('DAYS_FIRST_DRAWING', F.when(F.col('DAYS_FIRST_DRAWING') == 365243, None).otherwise(F.col('DAYS_FIRST_DRAWING')))
+    .withColumn('DAYS_FIRST_DUE', F.when(F.col('DAYS_FIRST_DUE') == 365243, None).otherwise(F.col('DAYS_FIRST_DUE')))
+    .withColumn('DAYS_LAST_DUE_1ST_VERSION', F.when(F.col('DAYS_LAST_DUE_1ST_VERSION') == 365243, None).otherwise(F.col('DAYS_LAST_DUE_1ST_VERSION')))
+    .withColumn('DAYS_LAST_DUE', F.when(F.col('DAYS_LAST_DUE') == 365243, None).otherwise(F.col('DAYS_LAST_DUE')))
+    .withColumn('DAYS_TERMINATION', F.when(F.col('DAYS_TERMINATION') == 365243, None).otherwise(F.col('DAYS_TERMINATION')))
+)
+
+# Add a new feature: value asked/received percentage
+prev = prev.withColumn('APP_CREDIT_PERC', F.col('AMT_APPLICATION') / F.col('AMT_CREDIT'))
+```
+
+### Feature Engineering Code
+
+```python
+# Define numerical aggregation functions for PySpark
+num_aggregations = {
+    'AMT_ANNUITY': ['min', 'max', 'mean'],
+    'AMT_APPLICATION': ['min', 'max', 'mean'],
+    'AMT_CREDIT': ['min', 'max', 'mean'],
+    'APP_CREDIT_PERC': ['min', 'max', 'mean', 'variance'],
+    'AMT_DOWN_PAYMENT': ['min', 'max', 'mean'],
+    'AMT_GOODS_PRICE': ['min', 'max', 'mean'],
+    'HOUR_APPR_PROCESS_START': ['min', 'max', 'mean'],
+    'RATE_DOWN_PAYMENT': ['min', 'max', 'mean'],
+    'DAYS_DECISION': ['min', 'max', 'mean'],
+    'CNT_PAYMENT': ['mean', 'sum'],
+}
+
+# Create aggregation expressions for PySpark
+agg_exprs = [F.expr(f"{agg}({col})").alias(f"PREV_{col}_{agg.upper()}")
+             for col, aggs in num_aggregations.items()
+             for agg in aggs]
+
+# Apply aggregations grouped by 'SK_ID_CURR'
+prev_agg = prev.groupby('SK_ID_CURR').agg(*agg_exprs)
+
+# Handle categorical feature aggregations
+cat_aggregations = {cat: 'mean' for cat in cat_cols}
+cat_exprs = [F.mean(cat).alias(f"PREV_{cat}_MEAN") for cat in cat_cols]
+prev_agg = prev_agg.select('SK_ID_CURR', *agg_exprs, *cat_exprs)
+
+# Approved applications - filter and aggregate
+approved = prev.filter(F.col('NAME_CONTRACT_STATUS_Approved') == 1)
+approved_agg = approved.groupby('SK_ID_CURR').agg(*[F.expr(f"{agg}({col})").alias(f"APPROVED_{col}_{agg.upper()}")
+                                                     for col, aggs in num_aggregations.items()
+                                                     for agg in aggs])
+prev_agg = prev_agg.join(approved_agg, on='SK_ID_CURR', how='left')
+
+# Refused applications - filter and aggregate
+refused = prev.filter(F.col('NAME_CONTRACT_STATUS_Refused') == 1)
+refused_agg = refused.groupby('SK_ID_CURR').agg(*[F.expr(f"{agg}({col})").alias(f"REFUSED_{col}_{agg.upper()}")
+                                                   for col, aggs in num_aggregations.items()
+                                                   for agg in aggs])
+prev_agg = prev_agg.join(refused_agg, on='SK_ID_CURR', how='left')
+
+# Optional: Collect garbage (uncomment if running in a Jupyter notebook)
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - Reading `prev` from a Spark table and handling categorical one-hot encoding.
+  - Replacing specific values (e.g., 365.243) with `None` using `F.when()`.
+  - Adding a derived feature `APP_CREDIT_PERC`.
+
+- **Feature Engineering**:
+  - Creating aggregation expressions for numerical columns and applying them with `groupby` and `agg`.
+  - Performing separate aggregations for approved and refused applications and joining them back to `prev_agg`.
+
+This approach uses PySpark functions and methods to handle large-scale data processing efficiently.
+
+
+  Here's the breakdown of the `pos_cash` function into data engineering and feature engineering code, adapted for PySpark:
+
+### Data Engineering Code
+
+```python
+from pyspark.sql import functions as F
+
+# Read the POS_CASH_balance data using Spark
+pos = spark.read.table("pos_cash_balance_table_name")
+
+# One-hot encoding for categorical features (assuming one-hot encoder function has been defined)
+pos, cat_cols = one_hot_encoder(pos, nan_as_category=True)
+```
+
+### Feature Engineering Code
+
+```python
+# Define aggregation expressions for numerical features
+num_aggregations = {
+    'MONTHS_BALANCE': ['max', 'mean', 'count'],
+    'SK_DPD': ['max', 'mean'],
+    'SK_DPD_DEF': ['max', 'mean']
+}
+
+# Create aggregation expressions for PySpark
+agg_exprs = [F.expr(f"{agg}({col})").alias(f"POS_{col}_{agg.upper()}")
+             for col, aggs in num_aggregations.items()
+             for agg in aggs]
+
+# Apply aggregations grouped by 'SK_ID_CURR'
+pos_agg = pos.groupby('SK_ID_CURR').agg(*agg_exprs)
+
+# Handle categorical feature aggregations
+cat_exprs = [F.mean(cat).alias(f"POS_{cat}_MEAN") for cat in cat_cols]
+pos_agg = pos_agg.select('SK_ID_CURR', *agg_exprs, *cat_exprs)
+
+# Add count of POS cash accounts
+pos_count = pos.groupBy('SK_ID_CURR').count().withColumnRenamed('count', 'POS_COUNT')
+pos_agg = pos_agg.join(pos_count, on='SK_ID_CURR', how='left')
+
+# Optional: Collect garbage (uncomment if running in a Jupyter notebook)
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - The `pos` DataFrame is read using `spark.read.table()`, and one-hot encoding is applied if needed.
+- **Feature Engineering**:
+  - Numerical aggregations (e.g., `max`, `mean`, `count`) are created for selected columns using Spark SQL expressions.
+  - The number of POS cash accounts (`POS_COUNT`) is calculated using the `count()` method with `groupBy()`.
+  - Categorical features are aggregated using `mean()` and appended to the `pos_agg` DataFrame.
+
+This setup leverages PySpark's powerful distributed computing capabilities to handle large-scale data processing efficiently.
+
+  Here's how to break down the `installments_payments` function into data and feature engineering code, adapted for PySpark:
+
+### Data Engineering Code
+
+```python
+from pyspark.sql import functions as F
+
+# Read the installments_payments data using Spark
+ins = spark.read.table("installments_payments_table_name")
+
+# One-hot encoding for categorical features (assuming one-hot encoder function has been defined)
+ins, cat_cols = one_hot_encoder(ins, nan_as_category=True)
+```
+
+### Feature Engineering Code
+
+```python
+# Calculate 'PAYMENT_PERC' and 'PAYMENT_DIFF' columns
+ins = ins.withColumn('PAYMENT_PERC', F.col('AMT_PAYMENT') / F.col('AMT_INSTALMENT'))
+ins = ins.withColumn('PAYMENT_DIFF', F.col('AMT_INSTALMENT') - F.col('AMT_PAYMENT'))
+
+# Calculate 'DPD' and 'DBD' columns and handle negative values
+ins = ins.withColumn('DPD', F.when(F.col('DAYS_ENTRY_PAYMENT') - F.col('DAYS_INSTALMENT') > 0, 
+                                   F.col('DAYS_ENTRY_PAYMENT') - F.col('DAYS_INSTALMENT')).otherwise(0))
+ins = ins.withColumn('DBD', F.when(F.col('DAYS_INSTALMENT') - F.col('DAYS_ENTRY_PAYMENT') > 0, 
+                                   F.col('DAYS_INSTALMENT') - F.col('DAYS_ENTRY_PAYMENT')).otherwise(0))
+
+# Define aggregation expressions for numerical features
+num_aggregations = {
+    'NUM_INSTALMENT_VERSION': 'countDistinct',
+    'DPD': ['max', 'mean', 'sum'],
+    'DBD': ['max', 'mean', 'sum'],
+    'PAYMENT_PERC': ['max', 'mean', 'sum', 'variance'],
+    'PAYMENT_DIFF': ['max', 'mean', 'sum', 'variance'],
+    'AMT_INSTALMENT': ['max', 'mean', 'sum'],
+    'AMT_PAYMENT': ['min', 'max', 'mean', 'sum'],
+    'DAYS_ENTRY_PAYMENT': ['max', 'mean', 'sum']
+}
+
+# Create aggregation expressions for PySpark
+agg_exprs = [F.expr(f"{agg}({col})").alias(f"INSTAL_{col}_{agg.upper()}")
+             for col, aggs in num_aggregations.items()
+             for agg in (aggs if isinstance(aggs, list) else [aggs])]
+
+# Perform aggregations grouped by 'SK_ID_CURR'
+ins_agg = ins.groupby('SK_ID_CURR').agg(*agg_exprs)
+
+# Handle categorical feature aggregations
+cat_exprs = [F.mean(cat).alias(f"INSTAL_{cat}_MEAN") for cat in cat_cols]
+ins_agg = ins_agg.select('SK_ID_CURR', *agg_exprs, *cat_exprs)
+
+# Count the number of installments accounts
+ins_count = ins.groupBy('SK_ID_CURR').count().withColumnRenamed('count', 'INSTAL_COUNT')
+ins_agg = ins_agg.join(ins_count, on='SK_ID_CURR', how='left')
+
+# Optional: Collect garbage (uncomment if running in a Jupyter notebook)
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - The `ins` DataFrame is read using `spark.read.table()` for efficient data loading.
+  - One-hot encoding is applied if necessary.
+- **Feature Engineering**:
+  - New columns `PAYMENT_PERC`, `PAYMENT_DIFF`, `DPD`, and `DBD` are computed using PySpark column operations.
+  - Aggregations such as `max`, `mean`, `sum`, and `variance` are applied using Spark SQL functions.
+  - Categorical features are aggregated using `mean()` to create summary statistics.
+  - A count of the number of installment accounts is added using `groupBy()` and `count()`.
+
+This PySpark version helps to handle large-scale data processing in a distributed manner, taking advantage of Spark's parallelism.
+
+
+  To adapt the `credit_card_balance` preprocessing function to PySpark, here is how the data and feature engineering breakdown would look:
+
+### Data Engineering Code
+
+```python
+from pyspark.sql import functions as F
+
+# Read the credit_card_balance data using Spark
+cc = spark.read.table("credit_card_balance_table_name")
+
+# One-hot encoding for categorical features (assuming one-hot encoder function has been defined)
+cc, cat_cols = one_hot_encoder(cc, nan_as_category=True)
+```
+
+### Feature Engineering Code
+
+```python
+# Drop 'SK_ID_PREV' as it is not needed for the aggregation
+cc = cc.drop('SK_ID_PREV')
+
+# Define aggregation expressions for numerical features
+agg_exprs = []
+num_agg_funcs = ['min', 'max', 'mean', 'sum', 'variance']
+
+# Create aggregation expressions for all numerical columns
+for col in cc.columns:
+    if col not in ['SK_ID_CURR'] + cat_cols:
+        for agg in num_agg_funcs:
+            agg_exprs.append(F.expr(f"{agg}({col})").alias(f"CC_{col}_{agg.upper()}"))
+
+# Perform aggregations grouped by 'SK_ID_CURR'
+cc_agg = cc.groupBy('SK_ID_CURR').agg(*agg_exprs)
+
+# Handle categorical feature aggregations
+cat_exprs = [F.mean(cat).alias(f"CC_{cat}_MEAN") for cat in cat_cols]
+cc_agg = cc_agg.select('SK_ID_CURR', *agg_exprs, *cat_exprs)
+
+# Count credit card lines (number of entries per 'SK_ID_CURR')
+cc_count = cc.groupBy('SK_ID_CURR').count().withColumnRenamed('count', 'CC_COUNT')
+cc_agg = cc_agg.join(cc_count, on='SK_ID_CURR', how='left')
+
+# Optional: Collect garbage (uncomment if running in a Jupyter notebook)
+# import gc
+# gc.collect()
+```
+
+### Explanation:
+- **Data Engineering**:
+  - The `cc` DataFrame is read using `spark.read.table()` for better scalability.
+  - The `SK_ID_PREV` column is dropped as it is not used in the final aggregations.
+  - One-hot encoding is performed if categorical columns are present.
+
+- **Feature Engineering**:
+  - Numerical columns are aggregated using functions like `min`, `max`, `mean`, `sum`, and `variance`.
+  - Categorical features are summarized by calculating the mean.
+  - A count of credit card lines per `SK_ID_CURR` is created using `groupBy()` and `count()`.
+  - The final DataFrame (`cc_agg`) includes all numerical and categorical aggregations, as well as the count column.
+
+This PySpark adaptation ensures efficient handling of large data sets with distributed processing capabilities.
+  
