@@ -1,10 +1,4 @@
-Here’s a minimal example in Python to go through the end-to-end process for building a machine learning model on the Titanic dataset. This example includes basic data loading, EDA, preprocessing, and a simple model building pipeline.
-
-Make sure you have installed the required packages:
-
-```bash
-pip install pandas numpy matplotlib seaborn scikit-learn
-```
+Here’s a minimal code example for a full ML pipeline on the Titanic dataset in Databricks, covering data loading, exploratory data analysis (EDA), data engineering, feature engineering, model training, and inference.
 
 ### 1. Import Libraries
 ```python
@@ -15,67 +9,101 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 ```
 
 ### 2. Load the Data
+Assuming the Titanic dataset is in a CSV file located in the `/volumes/` directory in Databricks:
+
 ```python
-# Replace with your local path to the dataset
-df = pd.read_csv('train.csv')
+# Load data from /volumes/ path
+df = pd.read_csv('/volumes/titanic.csv')
 df.head()
 ```
 
 ### 3. Exploratory Data Analysis (EDA)
-```python
-# Quick summary of the dataset
-print(df.info())
-print(df.describe())
+Perform basic EDA to understand the dataset.
 
-# Count of survivors
+```python
+# Check for missing values and data types
+print(df.info())
+print(df.isnull().sum())
+
+# Visualize survival rate
 sns.countplot(data=df, x='Survived')
 plt.show()
 
-# Checking survival rate based on Gender
+# Survival rate based on gender
 sns.barplot(data=df, x='Sex', y='Survived')
 plt.show()
-
-# Check for missing values
-print(df.isnull().sum())
 ```
 
-### 4. Data Preprocessing
+### 4. Data Engineering
+Handle missing values and drop irrelevant columns.
+
 ```python
-# Fill missing Age with median and Embarked with the mode
+# Fill missing Age with median, Embarked with mode
 df['Age'].fillna(df['Age'].median(), inplace=True)
 df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
 
 # Drop unnecessary columns
 df.drop(['Cabin', 'Ticket', 'Name', 'PassengerId'], axis=1, inplace=True)
+```
 
-# Convert categorical variables
+### 5. Feature Engineering
+Convert categorical variables and prepare features for the model.
+
+```python
+# Encode categorical variables
 df['Sex'] = LabelEncoder().fit_transform(df['Sex'])
 df['Embarked'] = LabelEncoder().fit_transform(df['Embarked'])
 ```
 
-### 5. Split Data into Train and Test Sets
+### 6. Split Data into Train and Test Sets
+Separate the target variable (`Survived`) from features and split into training and testing sets.
+
 ```python
 X = df.drop('Survived', axis=1)
 y = df['Survived']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ```
 
-### 6. Model Building and Training
+### 7. Model Training
+Train a Random Forest classifier.
+
 ```python
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 ```
 
-### 7. Evaluation
+### 8. Inference and Evaluation
+Make predictions on the test set and evaluate the model’s accuracy.
+
 ```python
-# Make predictions and evaluate the model
+# Predictions
 y_pred = model.predict(X_test)
+
+# Evaluation
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
+print(classification_report(y_test, y_pred))
 ```
 
-This code will output the accuracy of the model, and you can use this as a baseline to experiment with more complex models or feature engineering. This minimal approach keeps each step clear and concise.
+### 9. Save the Model (Optional)
+If you need to save the model for future inference:
+
+```python
+import joblib
+joblib.dump(model, '/dbfs/volumes/titanic_model.pkl')
+```
+
+### 10. Load and Use the Model for Future Inference (Optional)
+```python
+# Load the model
+loaded_model = joblib.load('/dbfs/volumes/titanic_model.pkl')
+
+# Use loaded model for inference on new data
+new_predictions = loaded_model.predict(X_test)
+```
+
+This code gives a complete and minimal pipeline for the Titanic dataset from EDA to model training and inference in Databricks. Adjust paths as needed for specific requirements in your Databricks environment.
