@@ -339,3 +339,6 @@ if __name__ == "__main__":
     submission_file_name = "submission_kernel02.csv"
     with timer("Full model run"):
         main()
+
+
+https://www.kaggle.com/code/brendan45774/titanic-top-solution
