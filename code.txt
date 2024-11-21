@@ -1,3 +1,51 @@
+- Retraining can be easily initiated from the UI, making it accessible for non-technical users.
+- Simplifies the retraining process, reducing manual effort.
+- Allows users to configure retraining options for flexibility
+
+
+-May lack advanced customization options for complex models.
+
+Prebuilt Model Monitoring Metrics	Does Starbase support predefined monitoring metrics?	Yes	Predefined metrics are automatically available from the UI and can be analyzed through plots for each inference pipeline.	"- Model monitoring metrics are tracked for each inference pipeline run
+- Metrics can be compared across different runs, enabling better performance tracking and analysis.
+- Facilitates the identification of trends, anomalies, and model drift "	
+Custom Model Monitoring Metrics	Can custom monitoring metrics be incorporated?	Yes	Custom metrics can be defined and integrated into the UI for tracking.	- Provides flexibility to monitor metrics that are crucial to the specific use case or model requirements.  	- Customization of metrics may require technical expertise
+Automated Notifications	Does Starbase support customizable notifications for model drift?	Yes	Set thresholds for monitoring metrics, triggering alerts when the model drifts based on configuration.	"- Customizable notifications for model drift ensure timely awareness of performance issues.
+- Allows users to define specific thresholds, making notifications relevant to their needs.
+- Helps in proactive monitoring and quick intervention to maintain model accuracy."	
+Tracking Performance Metrics	Does Starbase track metrics like latency, memory usage, and inference time?	Yes	Predefined performance metrics such as latency, memory usage, and inference time are tracked automatically during job runs.	"- Tracks key performance metrics such as memory usage, and inference time, providing insights into model efficiency.
+- Allows monitoring of resource consumption, RAM and CPU utilization"	- May add overhead to job execution due to continuous tracking of performance metrics.
+Retraining Capability	Does Starbase support model retraining?	Yes	Model retraining can be initiated directly from the UI by selecting the necessary configurations.	"- Retraining can be easily initiated from the UI, making it accessible for non-technical users.
+- Simplifies the retraining process, reducing manual effort.
+- Allows users to configure retraining options for flexibility"	-May lack advanced customization options for complex models.
+Model versioning	Can we track and manage different versions of models?	Yes	Model iterations with relevant metadata can be tracked from UI.	"- Tracks models effectively with clear versioning, aiding in comparison.
+- Facilitates easy navigation and organization of multiple model versions."	
+Rollback to previous version	Can Starbase allow rollback to a previous model version if needed?	Yes	Users can easily revert to a prior model version from the UI by redeploying the older version and archieving the newer version	"- Provides a simple way to revert to a previous model version in case of issues or drift.
+- Ensures continuity and stability by easily reverting to a known good version.
+- Reduces downtime by allowing quick rollback to a functional version."	- No explicit tracking of rollback
+Approval for retraining	Does Starbase require approval before retraining a model?	Yes	Retraining requires prior approval and can be approved from the UI and approvals need to be configured from codebase	"- Approvals can be efficiently managed directly from the UI, simplifying the process.
+- Each approval can be tagged to relevant reports, ensuring traceability and context.
+- UI-based approval streamlines workflows and enhances transparency in decision-making."	- Lack of tracking for who has approved a retraining may lead to accountability issues.
+Policy	Ensuring compliance, security, and risk mitigation	Yes	Can be configured from the UI	"- Ensures standardized processes and compliance across different teams or projects.
+- Helps mitigate risks by enforcing best practices, security, and consistency."	- May require additional setup and configuration to align with specific project needs.
+Alerts	Provides real-time, customizable notifications to ensure timely responses for critical events.	Yes	Will be automatically created if there are any policy violation. No need to configure	"- Provides real-time notifications for issues or critical events, enabling timely responses.
+- Customizable thresholds for alerts ensure relevance to specific use cases or requirements."	- Could result in missed or delayed responses if user doesnt check the results
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Here's how you can split the provided code into data engineering and feature engineering sections for `df` and `test_df` as PySpark DataFrames:
 
 ### Data Engineering Code
