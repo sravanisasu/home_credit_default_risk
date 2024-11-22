@@ -1,3 +1,11 @@
+- Begin with a standard code template to simplify and accelerate initial development.  
+- Set up configurations for job clusters and CI/CD pipelines by updating the relevant configuration files.  
+- Link the repository to the codebase by providing the URL of the code's location.  
+- Update the session to map tables or models to the corresponding repository within the application.  
+- Adjust job configurations to align with the project flow, such as data engineering, feature engineering, and training phases.  
+- Explore the user interface for deployment, governance, and ongoing management of workflows and models.  
+
+
 - Codestar enables end-to-end development, observability, and monitoring.
 - It accelerates development with Tiger Code and solution accelerators.
 - It provides orchestration, pipeline management, and infrastructure support.
