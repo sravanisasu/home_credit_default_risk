@@ -1,3 +1,13 @@
+Codestar is a tool that offers the following key features:
+
+- **End-to-End Development**: Facilitates the complete development lifecycle from start to finish.
+- **Observability and Monitoring**: Provides real-time tracking and insights into system and model performance.
+- **Tiger Code and Solution Accelerators**: Speeds up development with pre-built solutions and accelerators.
+- **Model Management and Scaling**: Manages machine learning models and ensures scalability for large environments.
+- **Governance and Adoption**: Ensures compliance, control, and the smooth adoption of new solutions across teams.
+
+
+
 https://www.youtube.com/watch?v=ikNvcnObiag&t=36s
 
 
