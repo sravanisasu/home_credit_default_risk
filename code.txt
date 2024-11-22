@@ -1,3 +1,6 @@
+https://www.youtube.com/watch?v=ikNvcnObiag&t=36s
+
+
 Here’s how you can create a function to randomly generate a histogram for one of the categorical columns in your dataset and return an HTML report. The function will work as part of a class `EDAReport` and allow you to call the `get_report()` method with the target column and save path.
 
 ### Implementation
