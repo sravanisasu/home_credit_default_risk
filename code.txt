@@ -1,3 +1,6 @@
+Configure the exsisting Azure devops CI/CD pipelines to the repository for the first time and the code versioining will automatically be managed by bitbucket 
+
+
 DS workbench	Does the UI provide a DS workbench layer for DS work on ?
 
 
