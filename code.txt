@@ -1,3 +1,10 @@
+- Codestar enables end-to-end development, observability, and monitoring.
+- It accelerates development with Tiger Code and solution accelerators.
+- It provides orchestration, pipeline management, and infrastructure support.
+- Codestar manages and scales machine learning models throughout their lifecycle.
+- It ensures governance, compliance, and adoption of new solutions across teams.
+
+
 **No Data Version Tracking**: Lacks version control for datasets, hindering reproducibility and collaboration.
 
 ML Observability: Tracks data quality, drift, and model performance.
