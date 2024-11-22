@@ -1,3 +1,138 @@
+Here’s how you can create a function to randomly generate a histogram for one of the categorical columns in your dataset and return an HTML report. The function will work as part of a class `EDAReport` and allow you to call the `get_report()` method with the target column and save path.
+
+### Implementation
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import io
+import base64
+from jinja2 import Template
+
+class EDAReport:
+    def __init__(self, data: pd.DataFrame):
+        """
+        Initialize the EDAReport class with a dataset.
+        """
+        self.data = data
+
+    def generate_histogram(self, column: str) -> str:
+        """
+        Generates a histogram for a given column and returns the image as a base64 string.
+        """
+        fig, ax = plt.subplots(figsize=(8, 5))
+        self.data[column].value_counts().plot(kind="bar", ax=ax, color='skyblue', edgecolor='black')
+        ax.set_title(f"Histogram for {column}", fontsize=14)
+        ax.set_xlabel(column, fontsize=12)
+        ax.set_ylabel("Frequency", fontsize=12)
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+        # Save the plot to a buffer
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight')
+        plt.close(fig)
+        buffer.seek(0)
+
+        # Encode the plot as a base64 string
+        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return image_base64
+
+    def get_report(self, y: str, save_path: str):
+        """
+        Generates an HTML report including a random histogram of a categorical column.
+        """
+        # Select random categorical column
+        categorical_cols = self.data.select_dtypes(include=['object', 'category']).columns.tolist()
+        if not categorical_cols:
+            raise ValueError("No categorical columns found in the dataset.")
+        random_column = random.choice(categorical_cols)
+
+        # Generate histogram
+        histogram_base64 = self.generate_histogram(random_column)
+
+        # HTML Template
+        html_template = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>EDA Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .container { max-width: 800px; margin: 0 auto; }
+                img { max-width: 100%; height: auto; }
+                h1, h2 { color: #333; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>EDA Report</h1>
+                <h2>Target Column: {{ y }}</h2>
+                <h2>Histogram for: {{ random_column }}</h2>
+                <img src="data:image/png;base64,{{ histogram_base64 }}" alt="Histogram">
+            </div>
+        </body>
+        </html>
+        """
+
+        # Render the HTML
+        template = Template(html_template)
+        html_content = template.render(
+            y=y,
+            random_column=random_column,
+            histogram_base64=histogram_base64
+        )
+
+        # Save to file
+        with open(save_path, "w") as f:
+            f.write(html_content)
+
+        print(f"Report saved at {save_path}")
+```
+
+### Usage Example
+
+```python
+# Sample data
+data = pd.DataFrame({
+    "Category": np.random.choice(["A", "B", "C", "D"], size=100),
+    "Target": np.random.randint(0, 2, size=100)
+})
+
+# Create an instance of EDAReport
+eda_report = EDAReport(data)
+
+# Generate the report
+target_col = "Target"
+report_path = "eda_report.html"
+eda_report.get_report(y=target_col, save_path=report_path)
+```
+
+### Explanation
+1. **Initialization**: The `EDAReport` class is initialized with a pandas DataFrame.
+2. **Random Histogram Generation**: The `generate_histogram` method creates a histogram for a randomly chosen categorical column and encodes it as a base64 string for embedding in the HTML.
+3. **HTML Report**: The `get_report` method builds an HTML report using the Jinja2 template and includes the histogram along with the target column information.
+4. **Save Report**: The report is saved to the specified path (`save_path`).
+
+This implementation ensures a clean workflow and reproducibility for generating reports.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - Retraining can be easily initiated from the UI, making it accessible for non-technical users.
 - Simplifies the retraining process, reducing manual effort.
 - Allows users to configure retraining options for flexibility
