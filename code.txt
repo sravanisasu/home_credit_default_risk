@@ -1,3 +1,9 @@
+Integrated IDEs : Native support for popular IDEs like Jupyter, RStudio, and Zeppelin, enabling seamless development and collaboration within the platform.
+Native Compute Environment : A self-managed, scalable compute environment tailored for efficient resource allocation and model training, without reliance on external infrastructures.
+Centralized Platform for Data Science Workflows : A unified platform that integrates the entire data science lifecycle, from development to deployment and monitoring, facilitating collaboration and tracking.
+Support for Vector Databases : Integration with vector databases like Pinecone and Weaviate, essential for handling embeddings and supporting Generative AI use cases.
+Code Templates for Fine-Tuning and Interactive Customization : Pre-built code templates and interactive features that simplify model fine-tuning and customization, making it easier to adapt models for specific tasks.
+
 Here’s a concise summary of the five unique strengths of **Domino**:
 
 1. **Integrated IDEs**: Native support for popular IDEs like **Jupyter**, **RStudio**, and **Zeppelin**, enabling seamless development and collaboration within the platform.
