@@ -1,108 +1,129 @@
-To update the code for using a PySpark DataFrame (`df`) instead of a Pandas DataFrame, several adjustments need to be made. LightGBM requires data in a format that it can handle directly, such as Pandas DataFrame or NumPy arrays, so you need to convert PySpark DataFrame to Pandas DataFrame for model training.
+### **Databricks Dashboarding Features**
 
-Here's how to update the code:
+Databricks provides **dashboarding capabilities** that allow users to visualize and share data insights directly within the Databricks workspace. These dashboards are designed to support collaborative, interactive exploration of data and model outputs, enabling teams to track metrics, monitor workflows, and make data-driven decisions.
 
-1. Convert PySpark DataFrame to Pandas DataFrame before splitting.
-2. Handle column selection using PySpark's methods.
-3. Adapt functions as needed to operate in PySpark and Pandas.
+---
 
-Here's the adapted code:
+### **Key Features of Databricks Dashboards**
 
-```python
-from pyspark.sql import SparkSession
-import gc
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import KFold, StratifiedKFold
-from lightgbm import LGBMClassifier
-from sklearn.metrics import roc_auc_score
-import matplotlib.pyplot as plt
+#### **1. Visualize Query Results**
+- Dashboards allow users to **visualize SQL query results** with a variety of visualizations, such as:
+  - Tables
+  - Bar charts
+  - Line charts
+  - Pie charts
+  - Scatter plots
+  - Maps
 
-def kfold_lightgbm(df, num_folds, stratified=False, debug=False):
-    # Convert PySpark DataFrame to Pandas DataFrame for model training
-    df = df.toPandas()
-    
-    # Divide in training/validation and test data
-    train_df = df[df['TARGET'].notnull()]
-    test_df = df[df['TARGET'].isnull()]
-    print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-    del df
-    gc.collect()
+#### **2. Interactive Widgets**
+- Dashboards support **parameterized widgets** (e.g., dropdowns, sliders, text boxes) to make dashboards interactive.
+- Users can dynamically filter or adjust queries and visualizations without editing the underlying code.
 
-    # Cross validation model
-    if stratified:
-        folds = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state=1001)
-    else:
-        folds = KFold(n_splits=num_folds, shuffle=True, random_state=1001)
-    
-    # Create arrays and dataframes to store results
-    oof_preds = np.zeros(train_df.shape[0])
-    sub_preds = np.zeros(test_df.shape[0])
-    feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']]
-    
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['TARGET'])):
-        train_x, train_y = train_df[feats].iloc[train_idx], train_df['TARGET'].iloc[train_idx]
-        valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['TARGET'].iloc[valid_idx]
+#### **3. Real-Time Data**
+- Dashboards can be configured to show **real-time or near real-time data** by refreshing queries on-demand or on a schedule.
+- Useful for monitoring pipelines, metrics, or operational analytics.
 
-        # LightGBM parameters found by Bayesian optimization
-        clf = LGBMClassifier(
-            nthread=4,
-            n_estimators=10000,
-            learning_rate=0.02,
-            num_leaves=34,
-            colsample_bytree=0.9497036,
-            subsample=0.8715623,
-            max_depth=8,
-            reg_alpha=0.041545473,
-            reg_lambda=0.0735294,
-            min_split_gain=0.0222415,
-            min_child_weight=39.3259775,
-            silent=-1,
-            verbose=-1,
-        )
+#### **4. Easy Sharing and Collaboration**
+- Dashboards can be shared with team members or across organizations via:
+  - **Link Sharing**: Generate a URL for external viewers.
+  - **Permissions Management**: Control who can view, edit, or manage dashboards.
 
-        clf.fit(train_x, train_y, eval_set=[(train_x, train_y), (valid_x, valid_y)],
-                eval_metric='auc', verbose=200, early_stopping_rounds=200)
+#### **5. Integration with Notebooks**
+- Dashboards are tightly integrated with **Databricks notebooks**:
+  - Users can directly convert notebook cells into dashboard widgets or visualizations.
+  - SQL queries or Python/Scala/R outputs from notebooks can populate dashboard elements.
 
-        oof_preds[valid_idx] = clf.predict_proba(valid_x, num_iteration=clf.best_iteration_)[:, 1]
-        sub_preds += clf.predict_proba(test_df[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
+#### **6. Scheduled Refresh**
+- Dashboards support **automated refresh schedules**:
+  - Update daily, hourly, or at custom intervals.
+  - Helps maintain up-to-date metrics and insights without manual intervention.
 
-        fold_importance_df = pd.DataFrame()
-        fold_importance_df["feature"] = feats
-        fold_importance_df["importance"] = clf.feature_importances_
-        fold_importance_df["fold"] = n_fold + 1
-        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
-        print('Fold %2d AUC : %.6f' % (n_fold + 1, roc_auc_score(valid_y, oof_preds[valid_idx])))
-        del clf, train_x, train_y, valid_x, valid_y
-        gc.collect()
+#### **7. Embedding Dashboards**
+- Dashboards can be **embedded into external websites** or internal applications to extend their reach.
 
-    print('Full AUC score %.6f' % roc_auc_score(train_df['TARGET'], oof_preds))
-    
-    # Write submission file and plot feature importance
-    if not debug:
-        test_df['TARGET'] = sub_preds
-        test_df[['SK_ID_CURR', 'TARGET']].to_csv('submission.csv', index=False)
-    
-    display_importances(feature_importance_df)
-    return feature_importance_df
+#### **8. Data Sources**
+- Supports data from multiple sources, including:
+  - Delta Lake tables
+  - External databases (via JDBC/ODBC)
+  - Query results from Spark SQL, Databricks SQL, or Python/Scala computations.
 
-def display_importances(feature_importance_df):
-    # Function to plot feature importance
-    cols = (feature_importance_df[["feature", "importance"]]
-            .groupby("feature")
-            .mean()
-            .sort_values(by="importance", ascending=False).index)
-    best_features = feature_importance_df.loc[feature_importance_df.feature.isin(cols)]
+#### **9. Alerts**
+- Allows setting **alerts** based on query results to notify users when certain thresholds are met (e.g., if a key metric exceeds a predefined value).
 
-    plt.figure(figsize=(14, 10))
-    sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
-    plt.title('LightGBM Features (avg over folds)')
-    plt.tight_layout()
-    plt.show()
-```
+#### **10. Export Options**
+- Users can export visualizations and data results for offline analysis or reporting in other tools.
 
-### Notes:
-- Convert PySpark DataFrame to Pandas DataFrame with `.toPandas()` for compatibility with LightGBM.
-- Ensure that the DataFrame fits in memory; using PySpark DataFrame in distributed form directly with LightGBM may need alternative approaches or a specialized library like `lightgbm.dask`.
-- For large datasets, consider distributing data processing and model training across multiple nodes or using scalable ML libraries like `MLlib`.
+---
+
+### **Drawbacks of Databricks Dashboards**
+
+While Databricks dashboards are powerful for collaborative analytics, they come with certain limitations:
+
+#### **1. Limited Advanced Customization**
+- Visualization options are relatively basic compared to specialized BI tools like Tableau, Power BI, or Looker.
+  - No advanced formatting or styling options for charts.
+  - Limited interactivity beyond simple filters and widgets.
+
+#### **2. Performance for Complex Dashboards**
+- Performance can degrade when running highly complex queries or visualizations, especially on very large datasets.
+- Requires properly optimized queries and clusters for smooth performance.
+
+#### **3. No Standalone Mode**
+- Dashboards are tightly coupled with the Databricks workspace and require access to Databricks for creation and maintenance.
+- Cannot function as standalone applications or fully replace external BI tools.
+
+#### **4. Lack of Cross-Dashboard Linking**
+- No support for **cross-dashboard navigation or linking**. Users cannot drill down from one dashboard into another seamlessly.
+
+#### **5. Limited Scalability for End-User Reporting**
+- Dashboards are better suited for **internal teams or analysts** rather than being distributed to a large number of end-users (e.g., for enterprise-level reporting).
+- Not optimized for highly polished reporting use cases.
+
+#### **6. Lack of Predictive or Advanced Analytics**
+- While dashboards display query results, they don’t natively support advanced predictive analytics or ML-based visualizations.
+- Users need to integrate notebooks or external tools for deeper analytics.
+
+#### **7. Dependency on Databricks SQL**
+- Dashboards rely heavily on **SQL** queries for data visualization. Non-SQL users may find it less intuitive compared to drag-and-drop tools.
+
+#### **8. Data Source Limitations**
+- While it supports various data sources, integrating data outside the Databricks ecosystem (e.g., APIs or SaaS tools) may require additional effort and middleware.
+
+#### **9. No Mobile Optimization**
+- Dashboards are not mobile-friendly or responsive, limiting their usability on smartphones or tablets.
+
+#### **10. Costs**
+- Dashboards rely on **Databricks compute resources** (e.g., clusters). This can lead to higher costs for frequently refreshed or computationally expensive dashboards.
+
+---
+
+### **When to Use Databricks Dashboards**
+
+#### **Best Use Cases**
+- Monitoring **ETL pipelines**, metrics, and data health checks.
+- Visualizing outputs from **data engineering** and **machine learning workflows**.
+- Quick **exploratory analysis** during collaborative work.
+- Sharing data insights within **data science and engineering teams**.
+
+#### **Not Ideal For**
+- Enterprise-grade reporting with highly polished formatting and distribution.
+- Complex, interactive visualizations (e.g., multi-page drill-downs).
+- Use cases requiring integration with non-Databricks data or external APIs.
+
+---
+
+### **Comparison to Other BI Tools**
+
+| **Feature**            | **Databricks Dashboards** | **Tableau/Power BI**         |
+|-------------------------|---------------------------|------------------------------|
+| Ease of Use            | Easy for SQL users       | User-friendly, drag-and-drop |
+| Advanced Visualizations | Limited                  | Extensive                    |
+| Integration            | Seamless with Databricks | Broader external integration |
+| Real-Time Refresh       | Supported                | Supported                    |
+| Mobile Optimization     | No                       | Yes                          |
+| Scalability for Reporting | Limited                 | High                         |
+
+---
+
+### **Conclusion**
+Databricks dashboards are ideal for internal, collaborative analytics and pipeline monitoring but may not fully replace specialized BI tools for advanced reporting or enterprise-wide visualization. To maximize their potential, consider using Databricks dashboards in combination with external tools like Tableau or Power BI for advanced visualization and reporting needs.
