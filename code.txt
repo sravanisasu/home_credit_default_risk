@@ -1,81 +1,197 @@
-Some useful links:
-1) https://www.youtube.com/watch?v=dQD2gVPJggQ&t=27s (Title: Learn to Use Databricks for the Full ML Lifecycle)
-2) https://www.youtube.com/watch?v=6ngxBkx05Fs (Title: MLFlow Tutorial | ML Ops Tutorial) [Video is not about Databricks Mlflow, but provides good overview of MLFlow]
-3) https://www.youtube.com/watch?v=ia5ZxFDPPzo (Title: Enable Production ML with Databricks Feature Store)
-4) https://www.youtube.com/watch?v=ipKKN_e7nvE (Title: Explained how to use Feature Store (FeatureLookup , FeatureFunction) in Databricks for ML)
-5) https://www.youtube.com/watch?v=uZtzARQ2bw8 (Title: Day 11: Create Dashboard From Databricks Notebook | 30 Days of Databricks)
-6) https://www.youtube.com/watch?v=J8FPCLaaa2s&t=230s (Title: Get Data Into Databricks - Simple ETL Pipeline)
+### **Databricks Feature Store: Overview**
 
+The **Databricks Feature Store** is a centralized repository for storing, sharing, and managing machine learning features. It is tightly integrated with Databricks workflows, including Delta Lake, MLflow, and Spark, and is designed to promote **feature reuse, reproducibility, and governance** in ML pipelines.
 
+A feature store helps solve common challenges in machine learning, such as:
+- Feature duplication across models.
+- Lack of consistency between training and serving features.
+- Difficulties tracking feature lineage and governance.
 
-Summary statistics, correlation heatmaps, and univariate distributions are analyzed during EDA.
-Configure the exsisting Azure devops CI/CD pipelines to the repository for the first time and the code versioining will automatically be managed by bitbucket 
+---
 
+### **Key Features of Databricks Feature Store**
 
-DS workbench	Does the UI provide a DS workbench layer for DS work on ?
+#### **1. Centralized Feature Repository**
+- Provides a **centralized location** to store and manage features used across multiple ML models.
+- Features can be stored as **feature tables**, which are versioned and organized in a Delta Lake-backed structure.
 
+#### **2. Consistent Feature Engineering**
+- Ensures **consistent feature computation** across training and inference pipelines.
+- Allows developers to define features once and reuse them in multiple ML workflows.
 
+#### **3. Online and Offline Feature Serving**
+- **Offline Serving**: Features can be read directly during batch training or inference jobs.
+- **Online Serving**: Low-latency feature retrieval via integration with online databases (e.g., AWS DynamoDB or Azure Cosmos DB) for real-time inference.
 
-- Begin with a standard code template to simplify and accelerate initial development.  
-- Set up configurations for job clusters and CI/CD pipelines by updating the relevant configuration files.  
-- Link the repository to the codebase by providing the URL of the code's location.  
-- Update the session to map tables or models to the corresponding repository within the application.  
-- Adjust job configurations to align with the project flow, such as data engineering, feature engineering, and training phases.  
-- Explore the user interface for deployment, governance, and ongoing management of workflows and models.  
+#### **4. Native Integration with Databricks Ecosystem**
+- Fully integrated with **Delta Lake** for versioned feature storage and reliability.
+- Works seamlessly with **MLflow**, enabling feature metadata tracking and linking features to registered models.
 
+#### **5. Feature Lineage and Governance**
+- Tracks feature **lineage** from the source data to feature generation and usage in models.
+- Helps in understanding how features were derived and ensures compliance with governance requirements.
 
-- Codestar enables end-to-end development, observability, and monitoring.
-- It accelerates development with Tiger Code and solution accelerators.
-- It provides orchestration, pipeline management, and infrastructure support.
-- Codestar manages and scales machine learning models throughout their lifecycle.
-- It ensures governance, compliance, and adoption of new solutions across teams.
+#### **6. Automatic Feature Versioning**
+- Features are versioned automatically whenever updates are made, ensuring reproducibility in ML experiments.
+- Allows rollbacks to previous versions of features if needed.
 
+#### **7. Sharing and Reuse**
+- Facilitates **feature reuse** across teams and projects, reducing redundancy and development time.
+- Features can be accessed by multiple models, enabling collaboration.
 
-**No Data Version Tracking**: Lacks version control for datasets, hindering reproducibility and collaboration.
+#### **8. Real-Time Feature Engineering**
+- Supports the creation of real-time features using event-based architectures and streaming data.
 
-ML Observability: Tracks data quality, drift, and model performance.
-Experimentation ROI: Measures business impact of ML experiments.
-ML Governance: Includes audit, policy violations, and bias/fairness evaluation.
-Issue Management: Alerts and workflows for policy violations and issue resolution.
+#### **9. Model Training and Scoring Integration**
+- Automatically joins features with labels during model training.
+- Provides APIs for scoring models by retrieving features from the feature store.
 
-Integrated IDEs : Native support for popular IDEs like Jupyter, RStudio, and Zeppelin, enabling seamless development and collaboration within the platform.
-Native Compute Environment : A self-managed, scalable compute environment tailored for efficient resource allocation and model training, without reliance on external infrastructures.
-Centralized Platform for Data Science Workflows : A unified platform that integrates the entire data science lifecycle, from development to deployment and monitoring, facilitating collaboration and tracking.
-Support for Vector Databases : Integration with vector databases like Pinecone and Weaviate, essential for handling embeddings and supporting Generative AI use cases.
-Code Templates for Fine-Tuning and Interactive Customization : Pre-built code templates and interactive features that simplify model fine-tuning and customization, making it easier to adapt models for specific tasks.
+#### **10. Monitoring and Drift Detection**
+- Provides tools to monitor feature usage and detect **feature drift** over time, ensuring model reliability.
 
-Here’s a concise summary of the five unique strengths of **Domino**:
+---
 
-1. **Integrated IDEs**: Native support for popular IDEs like **Jupyter**, **RStudio**, and **Zeppelin**, enabling seamless development and collaboration within the platform.
+### **Core Components of Databricks Feature Store**
 
-2. **Native Compute Environment**: A self-managed, scalable compute environment tailored for efficient resource allocation and model training, without reliance on external infrastructures.
+1. **Feature Table**
+   - A structured table that contains features, their metadata, and lineage.
+   - Stored as Delta tables in Unity Catalog or a Databricks-managed metastore.
+   - Example: A feature table for customer behavior:
+     ```plaintext
+     customer_id | avg_purchase_amount | total_orders | last_purchase_date
+     ```
 
-3. **Centralized Platform for Data Science Workflows**: A unified platform that integrates the entire data science lifecycle, from development to deployment and monitoring, facilitating collaboration and tracking.
+2. **Feature Store APIs**
+   - Python and Scala APIs for creating, managing, and retrieving features.
+   - Example:
+     ```python
+     from databricks.feature_store import FeatureStoreClient
+     fs = FeatureStoreClient()
 
-4. **Support for Vector Databases**: Integration with **vector databases** like **Pinecone** and **Weaviate**, essential for handling embeddings and supporting **Generative AI** use cases.
+     # Create a feature table
+     fs.create_table(
+         name="main_catalog.customer_features",
+         primary_keys=["customer_id"],
+         schema=feature_schema,
+         description="Features for customer segmentation"
+     )
+     ```
 
-5. **Code Templates for Fine-Tuning and Interactive Customization**: Pre-built code templates and interactive features that simplify model fine-tuning and customization, making it easier to adapt models for specific tasks.
+3. **Feature Serving Infrastructure**
+   - Connects feature tables to training pipelines, batch scoring, and real-time serving systems.
+   - Online serving supports low-latency use cases.
 
-These features distinguish **Domino** as a comprehensive, end-to-end solution for data science workflows and **Generative AI** applications.
+---
 
+### **Steps to Use the Databricks Feature Store**
 
-Here’s how **Domino** compares to the drawbacks you've listed for **Starbase**:
+#### **1. Create a Feature Table**
+- Define features using a Spark DataFrame or Delta Table and save them in the feature store.
 
-1. **Random Unresponsive UI**:
-   - **Starbase**: Experiences issues with UI responsiveness, which can cause delays or unresponsiveness during long usage.
-   - **Domino**: Generally offers a more stable and responsive UI with performance optimized for large-scale use cases. Domino is designed for seamless user interaction, even for large experiments.
+```python
+from databricks.feature_store import FeatureStoreClient
 
-2. **Manual Setup** (script additions for tables, model registrations):
-   - **Starbase**: Requires manual additions of scripts for tasks like table and model registrations, which can be cumbersome and lead to overhead.
-   - **Domino**: Provides more automation in model registration, versioning, and experiment tracking. You don’t need to manually add scripts for most of these tasks, reducing overhead.
+fs = FeatureStoreClient()
 
-3. **Deep Technical Understanding for Customization** (model monitoring metrics):
-   - **Starbase**: Customizing model monitoring metrics requires deep technical expertise.
-   - **Domino**: While Domino offers customization options, it also provides a user-friendly interface for monitoring and adjusting metrics. Advanced customization is possible, but the tool is designed to be accessible without requiring deep technical expertise.
+# Define features
+customer_features = spark.sql("""
+SELECT
+    customer_id,
+    AVG(purchase_amount) AS avg_purchase_amount,
+    COUNT(order_id) AS total_orders
+FROM
+    sales_data
+GROUP BY
+    customer_id
+""")
 
-4. **File Format Compatibility (CSV, Parquet)**:
-   - **Starbase**: Cannot register data sources if the data is in file formats like CSV or Parquet, only supporting tables.
-   - **Domino**: Supports a wide variety of data sources, including CSV, Parquet, and other file formats, making it more flexible in terms of data input.
+# Create or update the feature table
+fs.create_table(
+    name="main_catalog.sales.customer_features",
+    primary_keys=["customer_id"],
+    df=customer_features,
+    description="Customer behavioral features"
+)
+```
 
-### Summary:
-Compared to **Starbase**, **Domino** does not have these specific drawbacks. Domino’s UI is generally more responsive, it provides better automation (reducing manual setup), and offers more flexibility with file formats (like CSV and Parquet). Additionally, Domino is designed to be accessible for customization without requiring deep technical knowledge.
+#### **2. Use Features for Training**
+- Retrieve features from the feature store and join them with labels for training.
+
+```python
+# Retrieve features
+features = fs.read_table("main_catalog.sales.customer_features")
+
+# Join features with labels
+training_data = features.join(labels, on="customer_id")
+
+# Train the model
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier().fit(training_data[features], training_data["label"])
+```
+
+#### **3. Serve Features for Inference**
+- Retrieve features in real-time or batch mode for inference.
+
+**Batch Inference:**
+```python
+scored_data = fs.score_batch(
+    model_uri="runs:/<run-id>/model",
+    feature_table="main_catalog.sales.customer_features",
+    result_table="main_catalog.sales.scored_data"
+)
+```
+
+**Real-Time Inference:**
+- Configure the feature store to serve features online using DynamoDB, CosmosDB, or other online stores.
+
+---
+
+### **Key Benefits of Databricks Feature Store**
+
+1. **Reproducibility**:
+   - Versioning ensures the same features are used during training and serving.
+
+2. **Collaboration**:
+   - Encourages feature sharing across teams, reducing development time and duplication.
+
+3. **Performance**:
+   - Efficient retrieval of features for both offline and online use cases.
+
+4. **Scalability**:
+   - Built on Delta Lake, enabling it to handle large-scale datasets and real-time data.
+
+---
+
+### **Limitations of Databricks Feature Store**
+
+1. **Real-Time Serving Dependencies**:
+   - Requires integration with external online storage systems like DynamoDB for real-time use cases.
+
+2. **Cloud Dependency**:
+   - Heavily dependent on Databricks and cloud infrastructure.
+
+3. **Limited Non-Spark Integration**:
+   - Designed for Spark-based environments, which may be restrictive for teams using other tools.
+
+4. **Complexity for Small Workflows**:
+   - Setting up a feature store may be overkill for small or simple ML projects.
+
+---
+
+### **Use Cases for Databricks Feature Store**
+
+1. **Customer Personalization**:
+   - Reuse behavioral features like purchase history, website visits, and interactions across multiple personalization models.
+
+2. **Fraud Detection**:
+   - Create real-time features based on transaction patterns and reuse them in fraud detection models.
+
+3. **Predictive Maintenance**:
+   - Store historical sensor data and derived features for equipment failure prediction models.
+
+4. **Recommendation Systems**:
+   - Build and reuse features for collaborative filtering and content-based recommendation engines.
+
+---
+
+If you'd like more details on any specific use case or example, feel free to ask!
