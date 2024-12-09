@@ -1,185 +1,585 @@
-# <a id='5'>5. Data Exploration</a>
-## <a id='5-1'>5.1 Distribution of AMT_CREDIT</a>
-plt.figure(figsize=(12,5))
-plt.title("Distribution of AMT_CREDIT")
-ax = sns.distplot(application_train["AMT_CREDIT"])
-## <a id='5-2'>5.2 Distribution of AMT_INCOME_TOTAL</a>
-plt.figure(figsize=(12,5))
-plt.title("Distribution of AMT_INCOME_TOTAL")
-ax = sns.distplot(application_train["AMT_INCOME_TOTAL"].dropna())
-## <a id='5-3'>5.3 Distribution of AMT_GOODS_PRICE</a>
-plt.figure(figsize=(12,5))
-plt.title("Distribution of AMT_GOODS_PRICE")
-ax = sns.distplot(application_train["AMT_GOODS_PRICE"].dropna())
-## <a id='5-4'>5.4 Who accompanied client when applying for the  application</a>
-temp = application_train["NAME_TYPE_SUITE"].value_counts()
-#print("Total number of states : ",len(temp))
-trace = go.Bar(
-    x = temp.index,
-    y = (temp / temp.sum())*100,
-)
-data = [trace]
-layout = go.Layout(
-    title = "Who accompanied client when applying for the  application in % ",
-    xaxis=dict(
-        title='Name of type of the Suite',
-        tickfont=dict(
-            size=14,
-            color='rgb(107, 107, 107)'
-        )
-    ),
-    yaxis=dict(
-        title='Count of Name of type of the Suite in %',
-        titlefont=dict(
-            size=16,
-            color='rgb(107, 107, 107)'
-        ),
-        tickfont=dict(
-            size=14,
-            color='rgb(107, 107, 107)'
-        )
-)
-)
-fig = go.Figure(data=data, layout=layout)
-py.iplot(fig, filename='schoolStateNames')
-## <a id='5-5'>5.5 Data is balanced or imbalanced</a>
-temp = application_train["TARGET"].value_counts()
-df = pd.DataFrame({'labels': temp.index,
-                   'values': temp.values
-                  })
-df.iplot(kind='pie',labels='labels',values='values', title='Loan Repayed or not')
-* As we can see data is highly imbalanced.
-## <a id='5-6'>5.6 Types of loan</a>
-* **Rovolving loans :**  Arrangement which allows for the loan amount to be withdrawn, repaid, and redrawn again in any manner and any number of times, until the arrangement expires. Credit card loans and overdrafts are revolving loans. Also called evergreen loan
-temp = application_train["NAME_CONTRACT_TYPE"].value_counts()
-fig = {
-  "data": [
-    {
-      "values": temp.values,
-      "labels": temp.index,
-      "domain": {"x": [0, .48]},
-      #"name": "Types of Loans",
-      #"hoverinfo":"label+percent+name",
-      "hole": .7,
-      "type": "pie"
-    },
-    
-    ],
-  "layout": {
-        "title":"Types of loan",
-        "annotations": [
-            {
-                "font": {
-                    "size": 20
-                },
-                "showarrow": False,
-                "text": "Loan Types",
-                "x": 0.17,
-                "y": 0.5
-            }
+## Imports
+import numpy as np
+import pandas as pd 
+from sklearn.preprocessing import LabelEncoder
+import os
+import warnings
+warnings.filterwarnings('ignore')
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+## Read in Data 
+# Training data
+app_train = pd.read_csv('../input/application_train.csv')
+print('Training data shape: ', app_train.shape)
+
+# Testing data features
+app_test = pd.read_csv('../input/application_test.csv')
+print('Testing data shape: ', app_test.shape)
+
+## Examine Missing Values
+
+# Function to calculate missing values by column# Funct 
+def missing_values_table(df):
+        mis_val = df.isnull().sum()
+        mis_val_percent = 100 * df.isnull().sum() / len(df)
+        mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
+        mis_val_table_ren_columns = mis_val_table.rename(
+        columns = {0 : 'Missing Values', 1 : '% of Total Values'})
+        mis_val_table_ren_columns = mis_val_table_ren_columns[
+            mis_val_table_ren_columns.iloc[:,1] != 0].sort_values(
+        '% of Total Values', ascending=False).round(1)
+        print ("Your selected dataframe has " + str(df.shape[1]) + " columns.\n"      
+            "There are " + str(mis_val_table_ren_columns.shape[0]) +
+              " columns that have missing values.")
+        return mis_val_table_ren_columns
+
+# Missing values statistics
+missing_values = missing_values_table(app_train)
+
+
+### Label Encoding and One-Hot Encoding
+le = LabelEncoder()
+le_count = 0
+
+# Iterate through the columns
+for col in app_train:
+    if app_train[col].dtype == 'object':
+        if len(list(app_train[col].unique())) <= 2:
+            le.fit(app_train[col])
+            app_train[col] = le.transform(app_train[col])
+            app_test[col] = le.transform(app_test[col])
+            le_count += 1
             
-        ]
-    }
-}
-iplot(fig, filename='donut')
-* Most of the loans are Cash loans which were taken by applicants. **90.5 %** loans are Cash loans.
-## <a id='5-7'>5.7 Purpose of loan</a>
-temp1 = application_train["FLAG_OWN_CAR"].value_counts()
-temp2 = application_train["FLAG_OWN_REALTY"].value_counts()
+print('%d columns were label encoded.' % le_count)
+# one-hot encoding of categorical variables
+app_train = pd.get_dummies(app_train)
+app_test = pd.get_dummies(app_test)
 
-fig = {
-  "data": [
-    {
-      "values": temp1.values,
-      "labels": temp1.index,
-      "domain": {"x": [0, .48]},
-      "name": "Own Car",
-      "hoverinfo":"label+percent+name",
-      "hole": .6,
-      "type": "pie"
-    },
-    {
-      "values": temp2.values,
-      "labels": temp2.index,
-      "text":"Own Realty",
-      "textposition":"inside",
-      "domain": {"x": [.52, 1]},
-      "name": "Own Reality",
-      "hoverinfo":"label+percent+name",
-      "hole": .6,
-      "type": "pie"
-    }],
-  "layout": {
-        "title":"Purpose of loan",
-        "annotations": [
-            {
-                "font": {
-                    "size": 20
-                },
-                "showarrow": False,
-                "text": "Own Car",
-                "x": 0.20,
-                "y": 0.5
-            },
-            {
-                "font": {
-                    "size": 20
-                },
-                "showarrow": False,
-                "text": "Own Realty",
-                "x": 0.8,
-                "y": 0.5
-            }
-        ]
-    }
-}
-iplot(fig, filename='donut')
+print('Training Features shape: ', app_train.shape)
+print('Testing Features shape: ', app_test.shape)
+### Aligning Training and Testing Data
+
+train_labels = app_train['TARGET']
+
+# Align the training and testing data, keep only columns present in both dataframes
+app_train, app_test = app_train.align(app_test, join = 'inner', axis = 1)
+
+# Add the target back in
+app_train['TARGET'] = train_labels
+
+print('Training Features shape: ', app_train.shape)
+print('Testing Features shape: ', app_test.shape)
+The training and testing datasets now have the same features which is required for machine learning. The number of features has grown significantly due to one-hot encoding. At some point we probably will want to try [dimensionality reduction (removing features that are not relevant)](https://en.wikipedia.org/wiki/Dimensionality_reduction) to reduce the size of the datasets.
+
+# Create an anomalous flag column
+app_train['DAYS_EMPLOYED_ANOM'] = app_train["DAYS_EMPLOYED"] == 365243
+app_test["DAYS_EMPLOYED"].replace({365243: np.nan}, inplace = True)
+
+# Find correlations with the target and sort
+correlations = app_train.corr()['TARGET'].sort_values()
+
+# Display correlations
+print('Most Positive Correlations:\n', correlations.tail(15))
+print('\nMost Negative Correlations:\n', correlations.head(15))
+
+### Effect of Age on Repayment
+# Find the correlation of the positive days since birth and target
+app_train['DAYS_BIRTH'] = abs(app_train['DAYS_BIRTH'])
+app_train['DAYS_BIRTH'].corr(app_train['TARGET'])
+
+# Age information into a separate dataframe
+age_data = app_train[['TARGET', 'DAYS_BIRTH']]
+age_data['YEARS_BIRTH'] = age_data['DAYS_BIRTH'] / 365
+
+# Bin the age data
+age_data['YEARS_BINNED'] = pd.cut(age_data['YEARS_BIRTH'], bins = np.linspace(20, 70, num = 11))
+age_data.head(10)
+
+# Group by the bin and calculate averages
+age_groups  = age_data.groupby('YEARS_BINNED').mean()
+age_groups
+
+# Extract the EXT_SOURCE variables and show correlations
+ext_data = app_train[['TARGET', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH']]
+ext_data_corrs = ext_data.corr()
+ext_data_corrs
 
 
-## <a id='5-8'>5.8 Income sources of Applicant's who applied for loan</a>
-temp = application_train["NAME_INCOME_TYPE"].value_counts()
-df = pd.DataFrame({'labels': temp.index,
-                   'values': temp.values
-                  })
-df.iplot(kind='pie',labels='labels',values='values', title='Income sources of Applicant\'s', hole = 0.5)
-* 51.6 % Applicants mentioned that they are working.  23.3 % are Commercial Associate and 18 % are Pensioner etc. 
-## <a id='5-9'>5.9 Family Status of Applicant's who applied for loan</a>
-temp = application_train["NAME_FAMILY_STATUS"].value_counts()
-df = pd.DataFrame({'labels': temp.index,
-                   'values': temp.values
-                  })
-df.iplot(kind='pie',labels='labels',values='values', title='Family Status of Applicant\'s', hole = 0.5)
-* 63.9 % applicants are married. 14.8 % are single etc.
-## <a id='5-10'>5.10 Occupation of Applicant's who applied for loan</a>
-temp = application_train["OCCUPATION_TYPE"].value_counts()
-temp.iplot(kind='bar', xTitle = 'Occupation', yTitle = "Count", title = 'Occupation of Applicant\'s who applied for loan', color = 'green')
-* **Top Applicant's who applied for loan :**
-  * Laborers - Apprx. 55 K
-  * Sales Staff - Approx. 32 K
-  * Core staff - Approx. 28 K
-  * Managers - Approx. 21 K
-  * Drivers - Approx. 19 K
-## <a id='5-11'>5.11 Education of Applicant's who applied for loan</a>
-temp = application_train["NAME_EDUCATION_TYPE"].value_counts()
-df = pd.DataFrame({'labels': temp.index,
-                   'values': temp.values
-                  })
-df.iplot(kind='pie',labels='labels',values='values', title='Education of Applicant\'s', hole = 0.5)
-* 71 % applicants have secondary and 24.3 % having higher education.
-## <a id='5-12'>5.12 For which types of house higher applicant's applied for loan ?</a>
-temp = application_train["NAME_HOUSING_TYPE"].value_counts()
-df = pd.DataFrame({'labels': temp.index,
-                   'values': temp.values
-                  })
-df.iplot(kind='pie',labels='labels',values='values', title='Type of House', hole = 0.5)
-* Approx. 89 % peoples applied for loan, they mentioned type of house is **House / Appartment**.
-## <a id='5-13'>5.13 Types of Organizations who applied for loan </a>
-temp = application_train["ORGANIZATION_TYPE"].value_counts()
-temp.iplot(kind='bar', xTitle = 'Organization Name', yTitle = "Count", title = 'Types of Organizations who applied for loan ', color = 'red')
-* **Types of Organizations who applied for loan :**
-  * Business Entity Type 3 - Approx. 68 K
-  * XNA - Approx. 55 K
-  * Self employed - Approx. 38 K
-  * Others - Approx. 17 K
-  * Medicine - Approx. 11 K
- 
+# Feature Engineering
+
+## Polynomial Features
+# Make a new dataframe for polynomial features
+poly_features = app_train[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH', 'TARGET']]
+poly_features_test = app_test[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH']]
+
+# imputer for handling missing values
+from sklearn.preprocessing import Imputer
+
+imputer = Imputer(strategy = 'median')
+poly_target = poly_features['TARGET']
+poly_features = poly_features.drop(columns = ['TARGET'])
+
+# Need to impute missing values
+poly_features = imputer.fit_transform(poly_features)
+poly_features_test = imputer.transform(poly_features_test)
+
+from sklearn.preprocessing import PolynomialFeatures
+                                  
+# Create the polynomial object with specified degree
+poly_transformer = PolynomialFeatures(degree = 3)
+# Train the polynomial features
+poly_transformer.fit(poly_features)
+
+# Transform the features
+poly_features = poly_transformer.transform(poly_features)
+poly_features_test = poly_transformer.transform(poly_features_test)
+print('Polynomial Features shape: ', poly_features.shape)
+
+poly_transformer.get_feature_names(input_features = ['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH'])[:15]
+
+# Create a dataframe of the features 
+poly_features = pd.DataFrame(poly_features, 
+                             columns = poly_transformer.get_feature_names(['EXT_SOURCE_1', 'EXT_SOURCE_2', 
+                                                                           'EXT_SOURCE_3', 'DAYS_BIRTH']))
+
+# Add in the target
+poly_features['TARGET'] = poly_target
+
+# Find the correlations with the target
+poly_corrs = poly_features.corr()['TARGET'].sort_values()
+
+# Display most negative and most positive
+print(poly_corrs.head(10))
+print(poly_corrs.tail(5))
+
+# Put test features into dataframe
+poly_features_test = pd.DataFrame(poly_features_test, 
+                                  columns = poly_transformer.get_feature_names(['EXT_SOURCE_1', 'EXT_SOURCE_2', 
+                                                                                'EXT_SOURCE_3', 'DAYS_BIRTH']))
+
+# Merge polynomial features into training dataframe
+poly_features['SK_ID_CURR'] = app_train['SK_ID_CURR']
+app_train_poly = app_train.merge(poly_features, on = 'SK_ID_CURR', how = 'left')
+
+# Merge polnomial features into testing dataframe
+poly_features_test['SK_ID_CURR'] = app_test['SK_ID_CURR']
+app_test_poly = app_test.merge(poly_features_test, on = 'SK_ID_CURR', how = 'left')
+
+# Align the dataframes
+app_train_poly, app_test_poly = app_train_poly.align(app_test_poly, join = 'inner', axis = 1)
+
+# Print out the new shapes
+print('Training data with polynomial features shape: ', app_train_poly.shape)
+print('Testing data with polynomial features shape:  ', app_test_poly.shape)
+## Domain Knowledge Features
+
+
+app_train_domain = app_train.copy()
+app_test_domain = app_test.copy()
+
+app_train_domain['CREDIT_INCOME_PERCENT'] = app_train_domain['AMT_CREDIT'] / app_train_domain['AMT_INCOME_TOTAL']
+app_train_domain['ANNUITY_INCOME_PERCENT'] = app_train_domain['AMT_ANNUITY'] / app_train_domain['AMT_INCOME_TOTAL']
+app_train_domain['CREDIT_TERM'] = app_train_domain['AMT_ANNUITY'] / app_train_domain['AMT_CREDIT']
+app_train_domain['DAYS_EMPLOYED_PERCENT'] = app_train_domain['DAYS_EMPLOYED'] / app_train_domain['DAYS_BIRTH']
+app_test_domain['CREDIT_INCOME_PERCENT'] = app_test_domain['AMT_CREDIT'] / app_test_domain['AMT_INCOME_TOTAL']
+app_test_domain['ANNUITY_INCOME_PERCENT'] = app_test_domain['AMT_ANNUITY'] / app_test_domain['AMT_INCOME_TOTAL']
+app_test_domain['CREDIT_TERM'] = app_test_domain['AMT_ANNUITY'] / app_test_domain['AMT_CREDIT']
+app_test_domain['DAYS_EMPLOYED_PERCENT'] = app_test_domain['DAYS_EMPLOYED'] / app_test_domain['DAYS_BIRTH']
+#### Visualize New Variables
+
+
+## Logistic Regression Implementation
+
+from sklearn.preprocessing import MinMaxScaler, Imputer
+
+# Drop the target from the training data
+if 'TARGET' in app_train:
+    train = app_train.drop(columns = ['TARGET'])
+else:
+    train = app_train.copy()
+    
+# Feature names
+features = list(train.columns)
+
+# Copy of the testing data
+test = app_test.copy()
+
+# Median imputation of missing values
+imputer = Imputer(strategy = 'median')
+
+# Scale each feature to 0-1
+scaler = MinMaxScaler(feature_range = (0, 1))
+
+# Fit on the training data
+imputer.fit(train)
+
+# Transform both training and testing data
+train = imputer.transform(train)
+test = imputer.transform(app_test)
+
+# Repeat with the scaler
+scaler.fit(train)
+train = scaler.transform(train)
+test = scaler.transform(test)
+
+print('Training data shape: ', train.shape)
+print('Testing data shape: ', test.shape)
+
+from sklearn.linear_model import LogisticRegression
+
+# Make the model with the specified regularization parameter
+log_reg = LogisticRegression(C = 0.0001)
+
+# Train on the training data
+log_reg.fit(train, train_labels)
+
+# Make predictions
+# Make sure to select the second column only
+log_reg_pred = log_reg.predict_proba(test)[:, 1]
+
+# Submission dataframe
+submit = app_test[['SK_ID_CURR']]
+submit['TARGET'] = log_reg_pred
+
+
+# Save the submission to a csv file
+submit.to_csv('log_reg_baseline.csv', index = False)
+
+## Improved Model: Random Forest
+
+
+from sklearn.ensemble import RandomForestClassifier
+
+# Make the random forest classifier
+random_forest = RandomForestClassifier(n_estimators = 100, random_state = 50, verbose = 1, n_jobs = -1)
+# Train on the training data
+random_forest.fit(train, train_labels)
+
+# Extract feature importances
+feature_importance_values = random_forest.feature_importances_
+feature_importances = pd.DataFrame({'feature': features, 'importance': feature_importance_values})
+
+# Make predictions on the test data
+predictions = random_forest.predict_proba(test)[:, 1]
+# Make a submission dataframe
+submit = app_test[['SK_ID_CURR']]
+submit['TARGET'] = predictions
+
+# Save the submission dataframe
+submit.to_csv('random_forest_baseline.csv', index = False)
+
+### Make Predictions using Engineered Features
+poly_features_names = list(app_train_poly.columns)
+
+# Impute the polynomial features
+imputer = Imputer(strategy = 'median')
+
+poly_features = imputer.fit_transform(app_train_poly)
+poly_features_test = imputer.transform(app_test_poly)
+
+# Scale the polynomial features
+scaler = MinMaxScaler(feature_range = (0, 1))
+
+poly_features = scaler.fit_transform(poly_features)
+poly_features_test = scaler.transform(poly_features_test)
+
+random_forest_poly = RandomForestClassifier(n_estimators = 100, random_state = 50, verbose = 1, n_jobs = -1)
+# Train on the training data
+random_forest_poly.fit(poly_features, train_labels)
+
+# Make predictions on the test data
+predictions = random_forest_poly.predict_proba(poly_features_test)[:, 1]
+# Make a submission dataframe
+submit = app_test[['SK_ID_CURR']]
+submit['TARGET'] = predictions
+
+# Save the submission dataframe
+submit.to_csv('random_forest_baseline_engineered.csv', index = False)
+
+#### Testing Domain Features
+app_train_domain = app_train_domain.drop(columns = 'TARGET')
+
+domain_features_names = list(app_train_domain.columns)
+
+# Impute the domainnomial features
+imputer = Imputer(strategy = 'median')
+
+domain_features = imputer.fit_transform(app_train_domain)
+domain_features_test = imputer.transform(app_test_domain)
+
+# Scale the domainnomial features
+scaler = MinMaxScaler(feature_range = (0, 1))
+
+domain_features = scaler.fit_transform(domain_features)
+domain_features_test = scaler.transform(domain_features_test)
+
+random_forest_domain = RandomForestClassifier(n_estimators = 100, random_state = 50, verbose = 1, n_jobs = -1)
+
+# Train on the training data
+random_forest_domain.fit(domain_features, train_labels)
+
+# Extract feature importances
+feature_importance_values_domain = random_forest_domain.feature_importances_
+feature_importances_domain = pd.DataFrame({'feature': domain_features_names, 'importance': feature_importance_values_domain})
+
+# Make predictions on the test data
+predictions = random_forest_domain.predict_proba(domain_features_test)[:, 1]
+# Make a submission dataframe
+submit = app_test[['SK_ID_CURR']]
+submit['TARGET'] = predictions
+
+# Save the submission dataframe
+submit.to_csv('random_forest_baseline_domain.csv', index = False)
+
+def plot_feature_importances(df):
+    """
+    Plot importances returned by a model. This can work with any measure of
+    feature importance provided that higher importance is better. 
+    
+    Args:
+        df (dataframe): feature importances. Must have the features in a column
+        called `features` and the importances in a column called `importance
+        
+    Returns:
+        shows a plot of the 15 most importance features
+        
+        df (dataframe): feature importances sorted by importance (highest to lowest) 
+        with a column for normalized importance
+        """
+    
+    # Sort features according to importance
+    df = df.sort_values('importance', ascending = False).reset_index()
+    
+    # Normalize the feature importances to add up to one
+    df['importance_normalized'] = df['importance'] / df['importance'].sum()
+
+    # Make a horizontal bar chart of feature importances
+    plt.figure(figsize = (10, 6))
+    ax = plt.subplot()
+    
+    # Need to reverse the index to plot most important on top
+    ax.barh(list(reversed(list(df.index[:15]))), 
+            df['importance_normalized'].head(15), 
+            align = 'center', edgecolor = 'k')
+    
+    # Set the yticks and labels
+    ax.set_yticks(list(reversed(list(df.index[:15]))))
+    ax.set_yticklabels(df['feature'].head(15))
+    
+    # Plot labeling
+    plt.xlabel('Normalized Importance'); plt.title('Feature Importances')
+    plt.show()
+    
+    return df
+# Show the feature importances for the default features
+feature_importances_sorted = plot_feature_importances(feature_importances)
+
+feature_importances_domain_sorted = plot_feature_importances(feature_importances_domain)
+
+# Conclusions
+### Follow-up Notebooks
+
+For those looking to keep working on this problem, I have a series of follow-up notebooks:
+
+* [Manual Feature Engineering Part One](https://www.kaggle.com/willkoehrsen/introduction-to-manual-feature-engineering)
+* [Manual Feature Engineering Part Two](https://www.kaggle.com/willkoehrsen/introduction-to-manual-feature-engineering-p2)
+* [Introduction to Automated Feature Engineering](https://www.kaggle.com/willkoehrsen/automated-feature-engineering-basics)
+* [Advanced Automated Feature Engineering](https://www.kaggle.com/willkoehrsen/tuning-automated-feature-engineering-exploratory)
+* [Feature Selection](https://www.kaggle.com/willkoehrsen/introduction-to-feature-selection)
+* [Intro to Model Tuning: Grid and Random Search](https://www.kaggle.com/willkoehrsen/intro-to-model-tuning-grid-and-random-search)
+
+As always, I welcome feedback and constructive criticism. I write for Towards Data Science at https://medium.com/@williamkoehrsen/ and can be reached on Twitter at https://twitter.com/koehrsen_will
+
+Will
+
+# Just for Fun: Light Gradient Boosting Machine
+
+from sklearn.model_selection import KFold
+from sklearn.metrics import roc_auc_score
+import lightgbm as lgb
+import gc
+
+def model(features, test_features, encoding = 'ohe', n_folds = 5):
+    
+    """Train and test a light gradient boosting model using
+    cross validation. 
+    
+    Parameters
+    --------
+        features (pd.DataFrame): 
+            dataframe of training features to use 
+            for training a model. Must include the TARGET column.
+        test_features (pd.DataFrame): 
+            dataframe of testing features to use
+            for making predictions with the model. 
+        encoding (str, default = 'ohe'): 
+            method for encoding categorical variables. Either 'ohe' for one-hot encoding or 'le' for integer label encoding
+            n_folds (int, default = 5): number of folds to use for cross validation
+        
+    Return
+    --------
+        submission (pd.DataFrame): 
+            dataframe with `SK_ID_CURR` and `TARGET` probabilities
+            predicted by the model.
+        feature_importances (pd.DataFrame): 
+            dataframe with the feature importances from the model.
+        valid_metrics (pd.DataFrame): 
+            dataframe with training and validation metrics (ROC AUC) for each fold and overall.
+        
+    """
+    
+    # Extract the ids
+    train_ids = features['SK_ID_CURR']
+    test_ids = test_features['SK_ID_CURR']
+    
+    # Extract the labels for training
+    labels = features['TARGET']
+    
+    # Remove the ids and target
+    features = features.drop(columns = ['SK_ID_CURR', 'TARGET'])
+    test_features = test_features.drop(columns = ['SK_ID_CURR'])
+    
+    
+    # One Hot Encoding
+    if encoding == 'ohe':
+        features = pd.get_dummies(features)
+        test_features = pd.get_dummies(test_features)
+        
+        # Align the dataframes by the columns
+        features, test_features = features.align(test_features, join = 'inner', axis = 1)
+        
+        # No categorical indices to record
+        cat_indices = 'auto'
+    
+    # Integer label encoding
+    elif encoding == 'le':
+        
+        # Create a label encoder
+        label_encoder = LabelEncoder()
+        
+        # List for storing categorical indices
+        cat_indices = []
+        
+        # Iterate through each column
+        for i, col in enumerate(features):
+            if features[col].dtype == 'object':
+                # Map the categorical features to integers
+                features[col] = label_encoder.fit_transform(np.array(features[col].astype(str)).reshape((-1,)))
+                test_features[col] = label_encoder.transform(np.array(test_features[col].astype(str)).reshape((-1,)))
+
+                # Record the categorical indices
+                cat_indices.append(i)
+    
+    # Catch error if label encoding scheme is not valid
+    else:
+        raise ValueError("Encoding must be either 'ohe' or 'le'")
+        
+    print('Training Data Shape: ', features.shape)
+    print('Testing Data Shape: ', test_features.shape)
+    
+    # Extract feature names
+    feature_names = list(features.columns)
+    
+    # Convert to np arrays
+    features = np.array(features)
+    test_features = np.array(test_features)
+    
+    # Create the kfold object
+    k_fold = KFold(n_splits = n_folds, shuffle = True, random_state = 50)
+    
+    # Empty array for feature importances
+    feature_importance_values = np.zeros(len(feature_names))
+    
+    # Empty array for test predictions
+    test_predictions = np.zeros(test_features.shape[0])
+    
+    # Empty array for out of fold validation predictions
+    out_of_fold = np.zeros(features.shape[0])
+    
+    # Lists for recording validation and training scores
+    valid_scores = []
+    train_scores = []
+    
+    # Iterate through each fold
+    for train_indices, valid_indices in k_fold.split(features):
+        
+        # Training data for the fold
+        train_features, train_labels = features[train_indices], labels[train_indices]
+        # Validation data for the fold
+        valid_features, valid_labels = features[valid_indices], labels[valid_indices]
+        
+        # Create the model
+        model = lgb.LGBMClassifier(n_estimators=10000, objective = 'binary', 
+                                   class_weight = 'balanced', learning_rate = 0.05, 
+                                   reg_alpha = 0.1, reg_lambda = 0.1, 
+                                   subsample = 0.8, n_jobs = -1, random_state = 50)
+        
+        # Train the model
+        model.fit(train_features, train_labels, eval_metric = 'auc',
+                  eval_set = [(valid_features, valid_labels), (train_features, train_labels)],
+                  eval_names = ['valid', 'train'], categorical_feature = cat_indices,
+                  early_stopping_rounds = 100, verbose = 200)
+        
+        # Record the best iteration
+        best_iteration = model.best_iteration_
+        
+        # Record the feature importances
+        feature_importance_values += model.feature_importances_ / k_fold.n_splits
+        
+        # Make predictions
+        test_predictions += model.predict_proba(test_features, num_iteration = best_iteration)[:, 1] / k_fold.n_splits
+        
+        # Record the out of fold predictions
+        out_of_fold[valid_indices] = model.predict_proba(valid_features, num_iteration = best_iteration)[:, 1]
+        
+        # Record the best score
+        valid_score = model.best_score_['valid']['auc']
+        train_score = model.best_score_['train']['auc']
+        
+        valid_scores.append(valid_score)
+        train_scores.append(train_score)
+        
+        # Clean up memory
+        gc.enable()
+        del model, train_features, valid_features
+        gc.collect()
+        
+    # Make the submission dataframe
+    submission = pd.DataFrame({'SK_ID_CURR': test_ids, 'TARGET': test_predictions})
+    
+    # Make the feature importance dataframe
+    feature_importances = pd.DataFrame({'feature': feature_names, 'importance': feature_importance_values})
+    
+    # Overall validation score
+    valid_auc = roc_auc_score(labels, out_of_fold)
+    
+    # Add the overall scores to the metrics
+    valid_scores.append(valid_auc)
+    train_scores.append(np.mean(train_scores))
+    
+    # Needed for creating dataframe of validation scores
+    fold_names = list(range(n_folds))
+    fold_names.append('overall')
+    
+    # Dataframe of validation scores
+    metrics = pd.DataFrame({'fold': fold_names,
+                            'train': train_scores,
+                            'valid': valid_scores}) 
+    
+    return submission, feature_importances, metrics
+submission, fi, metrics = model(app_train, app_test)
+print('Baseline metrics')
+print(metrics)
+fi_sorted = plot_feature_importances(fi)
+submission.to_csv('baseline_lgb.csv', index = False)
+This submission should score about 0.735 on the leaderboard. We will certainly best that in future work! 
+app_train_domain['TARGET'] = train_labels
+
+# Test the domain knolwedge features
+submission_domain, fi_domain, metrics_domain = model(app_train_domain, app_test_domain)
+print('Baseline with domain knowledge features metrics')
+print(metrics_domain)
+fi_sorted = plot_feature_importances(fi_domain)
+
+submission_domain.to_csv('baseline_lgb_domain_features.csv', index = False)
