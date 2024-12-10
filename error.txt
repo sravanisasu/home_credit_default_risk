@@ -1,3 +1,11 @@
+DVC:
+(Data Versioning and Reproducible ML with DVC and MLflow) https://www.youtube.com/watch?v=W2DvpCYw22o
+(DVC Data Version Control Architecture Overview | #mlops #dvc #machinelearning) https://www.youtube.com/watch?v=NMcKkIEvpHA
+ 
+Monitoring:
+(Learn How to Reliably Monitor Your Data and Model Quality in the Lakehouse) https://www.youtube.com/watch?v=3TLBZSKeYTk
+ 
+
 ### **Unity Catalog in Databricks: Overview**
 
 **Unity Catalog** is a unified governance solution provided by Databricks that simplifies data governance and security in a multi-cloud environment. It offers centralized management for **data discovery, access controls, lineage tracking, and audit logging** across Databricks workspaces.
