@@ -1,3 +1,11 @@
+# Generate a PAT with dbutils
+token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+
+# Print or store the token securely
+print("Generated PAT:")
+print(token)
+
+
 DVC:
 (Data Versioning and Reproducible ML with DVC and MLflow) https://www.youtube.com/watch?v=W2DvpCYw22o
 (DVC Data Version Control Architecture Overview | #mlops #dvc #machinelearning) https://www.youtube.com/watch?v=NMcKkIEvpHA
