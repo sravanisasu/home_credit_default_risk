@@ -1,3 +1,136 @@
+import mlflow
+import numpy as np
+import json
+import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
+import mlflow
+from mlflow.models.signature import infer_signature
+from sklearn.preprocessing import LabelEncoder, PolynomialFeatures, MinMaxScaler
+from sklearn.impute import SimpleImputer
+from mlflow.models.signature import infer_signature
+
+mlflow.set_registry_uri("databricks-uc")
+
+model = mlflow.pyfunc.load_model(f'models:/cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.lightgbm/5')
+loaded_le_flag_own_car = mlflow.sklearn.load_model(f'models:/cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.label_encoder_flag_own_car/5')
+loaded_le_flag_own_realty = mlflow.sklearn.load_model(f'models:/cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.label_encoder_flag_own_realty/5')
+loaded_le_name_contract_type = mlflow.sklearn.load_model(f'models:/cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.label_encoder_name_contract_type/5')
+with open("/Workspace/Repos/ahstaff458@aia.com/atc_databricks_assessment/application_train_features.txt", 'r') as f:
+    features_list = f.read().splitlines()
+imputer_model_name = f'cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.imputer'
+imputer = mlflow.sklearn.load_model(f'models:/{imputer_model_name}/5')
+scaler_model_name = f'cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.scaler'
+scaler = mlflow.sklearn.load_model(f'models:/{scaler_model_name}/5')
+
+
+class CustomModel(mlflow.pyfunc.PythonModel):
+    def __init__(self, model,loaded_le_flag_own_car,loaded_le_flag_own_realty,loaded_le_name_contract_type,features_list,imputer,scaler):
+        # Load Models
+        self.model = model
+        self.loaded_le_flag_own_car = loaded_le_flag_own_car
+        self.loaded_le_flag_own_realty = loaded_le_flag_own_realty
+        self.loaded_le_name_contract_type = loaded_le_name_contract_type
+        self.features_list = features_list
+        self.imputer = imputer
+        self.scaler = scaler 
+
+    def load_context(self, context):
+        self.context = context                       
+
+    def pre_process(self, model_input):
+        # Label Encode categorical variables
+        model_input['FLAG_OWN_CAR'] = self.loaded_le_flag_own_car.transform(model_input['FLAG_OWN_CAR'])
+        model_input['FLAG_OWN_REALTY'] = self.loaded_le_flag_own_realty.transform(model_input['FLAG_OWN_REALTY'])
+        model_input['NAME_CONTRACT_TYPE'] = self.loaded_le_name_contract_type.transform(model_input['NAME_CONTRACT_TYPE'])
+                
+        # One hot Encode categorical variables
+        model_input = pd.get_dummies(model_input)
+        features_list = [feature for feature in self.features_list if feature != 'TARGET']
+        model_input = model_input.reindex(columns=features_list, fill_value=0)
+
+        # Preproces
+        model_input['DAYS_EMPLOYED_ANOM'] = model_input["DAYS_EMPLOYED"] == 365243
+        model_input["DAYS_EMPLOYED"].replace({365243: np.nan}, inplace = True)
+        model_input['DAYS_BIRTH'] = abs(model_input['DAYS_BIRTH'])
+        model_input = self.imputer.transform(model_input)
+        model_input = self.scaler.transform(model_input)
+        
+        return model_input
+
+    def predict(self, context, model_input:pd.DataFrame):
+        # if isinstance(model_input, dict) and "columns" in model_input and "data" in model_input:
+        #     model_input = pd.DataFrame(model_input["data"], columns=model_input["columns"])
+        # elif not isinstance(model_input, pd.DataFrame):
+        #     raise ValueError("Input must be a pandas DataFrame or a dictionary with 'columns' and 'data' keys.")
+
+        # Add preprocessing step
+        model_input = pd.DataFrame(model_input)
+        model_input = self.pre_process(model_input)
+        return self.model.predict(model_input).tolist()
+    
+
+    
+# log_reg_model_name = f'models:/cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.lightgbm/5'
+# signature = infer_signature(application_train.drop('TARGET', axis=1), application_train['TARGET'])
+
+lgbm_model_name = f'cat_ah01_dna_d_dlp_gen.ah_starbase_assessment.lightgbm_inference'
+application_train = pd.read_csv('/Volumes/cat_ah01_dna_d_dlp_gen/ah_starbase_assessment/data/application_train.csv')
+
+# Log the model with MLflow
+with mlflow.start_run(run_name='lightgbm_custom_inference') as run:
+    mlflow.pyfunc.log_model(
+        registered_model_name=lgbm_model_name,
+        artifact_path="lightgbm_custom",
+        python_model=CustomModel(model,loaded_le_flag_own_car,loaded_le_flag_own_realty,loaded_le_name_contract_type,features_list,imputer,scaler),
+        # signature=signature,
+        input_example=application_train.drop('TARGET', axis=1).head(10).reset_index(drop=True).to_dict(orient='records'),
+        conda_env={
+            'channels': ['defaults'],
+            'dependencies': [
+                'python=3.8.5',
+                'pip',
+                {
+                    'pip': [
+                        'mlflow',
+                        'numpy',
+                        'pandas',
+                        'scikit-learn',
+                        'lightgbm'
+                    ],
+                },
+            ],
+        },
+    )
+
+
+import os
+import requests
+import numpy as np
+import pandas as pd
+import json
+
+def create_tf_serving_json(data):
+    return {'inputs': {name: data[name].tolist() for name in data.keys()} if isinstance(data, dict) else data.tolist()}
+
+def score_model(dataset):
+    url = 'https://adb-6515920204052091.11.azuredatabricks.net/serving-endpoints/custom_model/invocations'
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    ds_dict = {'dataframe_split': dataset.to_dict(orient='split')} if isinstance(dataset, pd.DataFrame) else create_tf_serving_json(dataset)
+    data_json = json.dumps(ds_dict, allow_nan=True)
+    response = requests.request(method='POST', headers=headers, url=url, data=data_json)
+    if response.status_code != 200:
+        raise Exception(f'Request failed with status {response.status_code}, {response.text}')
+    return response.json()
+
+# Example usage
+# application_test = pd.read_csv('/Volumes/cat_ah01_dna_d_dlp_gen/ah_starbase_assessment/data/application_test.csv').head(1)
+predictions = score_model(application_test.head(1))
+predictions
+
+
+
+
 ### **Databricks Feature Store: Overview**
 
 The **Databricks Feature Store** is a centralized repository for storing, sharing, and managing machine learning features. It is tightly integrated with Databricks workflows, including Delta Lake, MLflow, and Spark, and is designed to promote **feature reuse, reproducibility, and governance** in ML pipelines.
