@@ -1,4 +1,11 @@
-pyspark.errors.exceptions.base.PySparkValueError: [INVALID_CONNECT_URL] Invalid URL for Spark Connect: The URL must start with 'sc://'. Please update the URL to follow the correct format, e.g., 'sc://hostname:port'.
+spark = SparkSession.builder.master("sc://adb-6515920204052091.11.azuredatabricks.net:5066").appName("ExternalSparkApp").getOrCreate()
+  File "/local_disk0/.ephemeral_nfs/user_tmp_data/spark-a89635f6-c98f-4951-b41c-c8/mlflow/envs/virtualenv_envs/mlflow-f32d977bc852ef27b8c8d174f68fd20fb06c2ab8/lib/python3.10/site-packages/pyspark/sql/session.py", line 394, in appName
+    return self.config("spark.app.name", name)
+  File "/local_disk0/.ephemeral_nfs/user_tmp_data/spark-a89635f6-c98f-4951-b41c-c8/mlflow/envs/virtualenv_envs/mlflow-f32d977bc852ef27b8c8d174f68fd20fb06c2ab8/lib/python3.10/site-packages/pyspark/sql/session.py", line 286, in config
+    self._validate_startup_urls()
+  File "/local_disk0/.ephemeral_nfs/user_tmp_data/spark-a89635f6-c98f-4951-b41c-c8/mlflow/envs/virtualenv_envs/mlflow-f32d977bc852ef27b8c8d174f68fd20fb06c2ab8/lib/python3.10/site-packages/pyspark/sql/session.py", line 300, in _validate_startup_urls
+    raise RuntimeError(
+RuntimeError: Spark master cannot be configured with Spark Connect server; however, found URL for Spark Connect [unix:///databricks/sparkconnect/grpc.sock;user_id=PLACEHOLDER;session_id=63e4f439-e150-41cf-b44f-027086fd7d0d]
 
 
 
