@@ -1,154 +1,84 @@
-# Generate a PAT with dbutils
-token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+Healthcare fraud scams in Southeast Asia encompass a variety of schemes targeting individuals, businesses, and governments. Common types include:
 
-# Print or store the token securely
-print("Generated PAT:")
-print(token)
+1.  Insurance Fraud
 
+Singapore: Doctor's False Claims to Ministry of Health
+submitted claims for treatments that were never provided under the Community Health Assist Scheme (Chas).
+https://www.thestar.com.my/aseanplus/aseanplus-news/2024/08/30/seven-months-jail-for-doctor-who-submitted-false-claims-cheated-moh-of-over-s11000
 
-DVC:
-(Data Versioning and Reproducible ML with DVC and MLflow) https://www.youtube.com/watch?v=W2DvpCYw22o
-(DVC Data Version Control Architecture Overview | #mlops #dvc #machinelearning) https://www.youtube.com/watch?v=NMcKkIEvpHA
- 
-Monitoring:
-(Learn How to Reliably Monitor Your Data and Model Quality in the Lakehouse) https://www.youtube.com/watch?v=3TLBZSKeYTk
- 
+In Malaysia, there have been instances where medical professionals submitted false claims to the Ministry of Health, leading to financial losses.
+For example, in 2018, several healthcare providers were found guilty of submitting fraudulent claims under the National Health Insurance Scheme, resulting in significant financial losses.
+The Malaysian Anti-Corruption Commission (MACC) has been actively investigating and prosecuting such cases to curb corruption in the healthcare sector.
+https://integrity-asia.com/blog/2024/09/26/health-care-fraud-lessons-from-malaysias-million-ringgit-scheme/
 
-### **Unity Catalog in Databricks: Overview**
+   -  False Claims : Encompasses multiple fraudulent practices, including:
+	Billing for services not provided.
+	Inflating the cost of provided services.
+	Misrepresenting services to qualify for higher reimbursements.
+      	
+   -  Overcharging : If the claims involved inflating the cost of treatments or services provided (charging more than the actual cost), it would fall under overcharging.
 
-**Unity Catalog** is a unified governance solution provided by Databricks that simplifies data governance and security in a multi-cloud environment. It offers centralized management for **data discovery, access controls, lineage tracking, and audit logging** across Databricks workspaces.
+   -  Phantom Billing : If the claims were for treatments or services that were never provided, it would qualify as phantom billing.
 
-It acts as a **metadata layer** that integrates with existing cloud storage systems (e.g., AWS S3, Azure Data Lake, Google Cloud Storage) to manage data, schemas, and tables.
+2.  Medical Identity Theft 
 
----
+Singapore: criminals used stolen health insurance details to obtain medical services and prescription medications under another person's name.
+They targeted individuals with valuable health insurance policies, stealing personal information through phishing or data breaches.
+https://www.straitstimes.com/singapore/personal-info-of-15m-singhealth-patients-including-pm-lee-stolen-in-singapores-most
 
-### **Key Features of Unity Catalog**
+   -  Stolen Information : Using another person's health insurance or identity to obtain treatments or medications.
+   -  Fraudulent Policies : Issuing fake health insurance policies using stolen data.
 
-1. **Centralized Data Governance**
-   - Provides a unified platform to manage access to all data assets (files, tables, views).
-   - Supports **fine-grained access control** at the table, column, and row levels.
+  3.  Fake Medicines 
+In Thailand (TH), in 2021, several online pharmacies were shut down after it was discovered that they were offering cheap prescription drugs through websites that sold counterfeit medications.
+These websites would lure customers with the promise of low prices and fast delivery, but the medications were either fake or did not exist at all.
+Customers paid for medications that were never delivered, and those who did receive their orders ended up with counterfeit drugs that lacked effectiveness or safety.
+https://www.interpol.int/en/News-and-Events/News/2021/Thousands-of-fake-online-pharmacies-shut-down-in-INTERPOL-operation
 
-2. **Data Lineage**
-   - Tracks the **end-to-end lineage** of data from raw sources to analytics and reports.
-   - Lineage includes transformations, queries, and downstream usage.
-   - Helps with debugging, auditing, and understanding the lifecycle of data.
+   -  Counterfeit Drugs : Selling fake or substandard medications that can be harmful.
+   -  Online Scams : Websites offering cheap medications that are either counterfeit or non-existent.
 
-3. **Fine-Grained Access Control**
-   - Uses **Attribute-Based Access Control (ABAC)** or **Role-Based Access Control (RBAC)** for granting and restricting access.
-   - Supports dynamic masking for sensitive columns (e.g., SSNs, credit card numbers).
+  4.  Kickback Schemes 
 
-4. **Multi-Cloud Support**
-   - Seamlessly integrates with Databricks workspaces across multiple cloud platforms (AWS, Azure, GCP).
+In Singapore (SG), several high-profile cases have revealed that doctors were bribed by pharmaceutical companies to prescribe specific medications. 
+In 2019, a group of doctors was investigated for taking bribes in the form of gifts, travel expenses, and financial incentives in exchange for prescribing certain drugs,
+often not the most cost-effective or best options for the patients.
 
-5. **Simplified Data Sharing**
-   - **Delta Sharing**: Securely share live data (Delta Lake tables) across organizations without replication.
-   - Promotes collaboration without moving data.
+   -  Referral Scams : Healthcare providers receive illegal kickbacks for referring patients to specific labs, clinics, or pharmacies.
+   -  Pharmaceutical Bribes : Doctors are incentivized to prescribe certain medications.
 
-6. **Compliance and Audit**
-   - Maintains a **full audit trail** of user activity, lineage, and changes to access policies.
-   - Helps organizations comply with regulations like GDPR, HIPAA, etc.
+  5.  Ghost Hospitals and Clinics 
 
-7. **Integration with Existing Tools**
-   - Works with modern data catalogs and BI tools like Tableau, Power BI, Looker, and others.
-   - Integrates with Delta Lake to track data changes efficiently.
+Thailand: Thonburi Healthcare Group Investment Scam
 
-8. **Real-Time Metadata Discovery**
-   - Allows users to search and discover data assets across the organization using the Databricks UI or APIs.
+In 2024, Dr. Boon Vanasin, former chairman of Thonburi Healthcare Group (THG), was implicated in a fraudulent investment scheme involving fake medical projects across Thailand, Laos, and Vietnam. 
+The scam defrauded approximately 250 investors of about 7.5 billion baht (around $340 million). 
+Dr. Boon fled to China to evade arrest, while his daughter, Navara Vanasin, was detained in connection with the fraud. 
+https://www.news.com.au/travel/travel-updates/incidents/thai-fugitives-daughter-in-custody-amid-340-million-health-scam/news-story/dfb7418ad383a0a5f079f59d09f909d0
 
-9. **Schema Enforcement**
-   - Prevents schema drift by enforcing column-level definitions and constraints.
+   -  Non-Existent Facilities : Fraudsters create fake hospitals or clinics to file insurance claims or attract investments.
+   -  Fly-by-Night Clinics : Set up temporary clinics to defraud patients before disappearing.
 
----
+  6.  Unlicensed Practitioners 
+   -  Fake Doctors : Individuals posing as licensed professionals offering substandard or harmful treatments.
+   -  Unauthorized Procedures : Performing surgeries or administering treatments without qualifications.
 
-### **Steps to Enable and Use Lineage in Unity Catalog**
+  7.  COVID-19 Related Scams 
+   -  Fake Vaccines and Tests : Selling counterfeit COVID-19 vaccines, fake test kits, or unapproved treatments.
+   -  Phishing Scams : Collecting personal or financial information through fake vaccination registration portals.
 
-#### **1. Prerequisites**
-   - Ensure Unity Catalog is enabled in your Databricks account.
-   - You need **Metastore Admin** permissions to set up the Unity Catalog.
-   - Use Databricks Runtime **12.0 or higher** to capture data lineage.
+  8.  Charity Fraud 
+   -  Bogus Medical Appeals : Fraudulent charities or individuals seeking donations for fabricated medical treatments.
+   -  Misappropriation : Legitimate charities misusing funds for non-medical purposes.
 
-#### **2. Create a Unity Catalog Metastore**
+  9.  Telemedicine Fraud 
+   -  Fake Consultations : Charging for online medical consultations that do not take place.
+   -  Unverified Apps : Fraudulent telemedicine platforms collecting personal data or payments without providing real services.
 
-   - Go to the **Databricks Admin Console**.
-   - Under "Unity Catalog," create a **Metastore** and assign a cloud storage bucket for metadata.
+  10.  Over-Prescription and Unnecessary Procedures 
+   -  Exploiting Insurance : Recommending unnecessary surgeries or tests to inflate insurance claims.
+   -  Drug Pushing : Prescribing medications in excessive quantities to profit from pharmaceutical companies.
 
-#### **3. Enable Lineage Tracking**
-
-   - Lineage is enabled by default when using Unity Catalog in supported runtimes (Databricks Runtime 12.0+).
-   - It automatically tracks lineage for:
-     - Queries
-     - Delta Lake operations
-     - Data loading jobs (e.g., with Spark or Auto Loader).
-
-#### **4. Capture Lineage Using SQL Commands**
-
-   - Unity Catalog automatically captures lineage when users perform **SQL queries** or **Spark DataFrame transformations** on Unity Catalog-managed data.
-
-   Example SQL query:
-   ```sql
-   USE CATALOG main_catalog;
-   CREATE TABLE sales_data AS
-   SELECT * FROM raw_data WHERE region = 'US';
-   ```
-   - Lineage will capture:
-     - Input dataset: `raw_data`
-     - Output dataset: `sales_data`
-     - Transformation: `region = 'US'`
-
-#### **5. View Lineage Information**
-
-   - Open the **Unity Catalog Lineage View** in the Databricks UI:
-     - Go to **Data Explorer**.
-     - Select a table or view.
-     - Click the **Lineage** tab to view upstream and downstream dependencies.
-
-#### **6. Programmatically Access Lineage**
-
-   Use Databricks REST APIs or CLI to retrieve lineage data programmatically.
-
-   Example API call:
-   ```bash
-   curl -X GET \
-   -H "Authorization: Bearer <your-token>" \
-   https://<databricks-instance>/api/2.0/lineage/table?table=<table-name>
-   ```
-
----
-
-### **Lineage Example Use Case**
-
-#### Data Pipeline:
-   - **Input Data**: Raw files in S3 or Delta Lake tables.
-   - **Transformations**:
-     - Aggregate and filter data using Spark/SQL.
-     - Write results to a `sales_summary` table in Unity Catalog.
-   - **Data Consumers**:
-     - BI tools like Tableau query the `sales_summary` table.
-
-#### Lineage Insights:
-   - **Upstream Data**: Raw files and tables (`raw_data`).
-   - **Transformations**: SQL queries, filtering, aggregation.
-   - **Downstream Consumers**: `sales_summary` table used by Tableau.
-
-   Lineage graph shows the entire flow from raw files to analytics, helping with audits and debugging.
-
----
-
-### **Key Benefits of Lineage in Unity Catalog**
-
-1. **Auditability**: Easily track changes to data, transformations, and metadata.
-2. **Debugging**: Quickly identify bottlenecks or errors in data pipelines.
-3. **Impact Analysis**: Assess how changes to upstream datasets affect downstream applications.
-4. **Compliance**: Demonstrates data usage and lineage to meet regulatory requirements.
-
----
-
-### **Limitations of Lineage in Unity Catalog**
-
-1. **Runtime Dependency**: Requires Databricks Runtime 12.0+ for lineage tracking.
-2. **Non-Databricks Workflows**: Does not capture lineage for workflows running outside Databricks (e.g., external ETL pipelines).
-3. **Lineage Completeness**: Some manual processes or undocumented transformations might not be captured.
-
----
-
-If you need specific examples, such as SQL commands, API integration, or how to manage policies, let me know!
+  11.  Government Program Fraud 
+   -  Embezzlement : Misappropriation of funds allocated to public healthcare programs.
+   -  Ghost Patients : Claiming benefits for non-existent patients under public schemes.
