@@ -1,3 +1,6 @@
+(DBUs consumed × DBU rate) + VM cost
+
+
 Yes, **Azure Databricks is generally more expensive than Azure Machine Learning** for model deployment, especially for large-scale data processing and real-time model serving. Here’s why:
 
 ### **1. Pricing Model Differences**
