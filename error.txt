@@ -1,84 +1,14 @@
-Healthcare fraud scams in Southeast Asia encompass a variety of schemes targeting individuals, businesses, and governments. Common types include:
-
-1.  Insurance Fraud
-
-Singapore: Doctor's False Claims to Ministry of Health
-submitted claims for treatments that were never provided under the Community Health Assist Scheme (Chas).
-https://www.thestar.com.my/aseanplus/aseanplus-news/2024/08/30/seven-months-jail-for-doctor-who-submitted-false-claims-cheated-moh-of-over-s11000
-
-In Malaysia, there have been instances where medical professionals submitted false claims to the Ministry of Health, leading to financial losses.
-For example, in 2018, several healthcare providers were found guilty of submitting fraudulent claims under the National Health Insurance Scheme, resulting in significant financial losses.
-The Malaysian Anti-Corruption Commission (MACC) has been actively investigating and prosecuting such cases to curb corruption in the healthcare sector.
-https://integrity-asia.com/blog/2024/09/26/health-care-fraud-lessons-from-malaysias-million-ringgit-scheme/
-
-   -  False Claims : Encompasses multiple fraudulent practices, including:
-	Billing for services not provided.
-	Inflating the cost of provided services.
-	Misrepresenting services to qualify for higher reimbursements.
-      	
-   -  Overcharging : If the claims involved inflating the cost of treatments or services provided (charging more than the actual cost), it would fall under overcharging.
-
-   -  Phantom Billing : If the claims were for treatments or services that were never provided, it would qualify as phantom billing.
-
-2.  Medical Identity Theft 
-
-Singapore: criminals used stolen health insurance details to obtain medical services and prescription medications under another person's name.
-They targeted individuals with valuable health insurance policies, stealing personal information through phishing or data breaches.
-https://www.straitstimes.com/singapore/personal-info-of-15m-singhealth-patients-including-pm-lee-stolen-in-singapores-most
-
-   -  Stolen Information : Using another person's health insurance or identity to obtain treatments or medications.
-   -  Fraudulent Policies : Issuing fake health insurance policies using stolen data.
-
-  3.  Fake Medicines 
-In Thailand (TH), in 2021, several online pharmacies were shut down after it was discovered that they were offering cheap prescription drugs through websites that sold counterfeit medications.
-These websites would lure customers with the promise of low prices and fast delivery, but the medications were either fake or did not exist at all.
-Customers paid for medications that were never delivered, and those who did receive their orders ended up with counterfeit drugs that lacked effectiveness or safety.
-https://www.interpol.int/en/News-and-Events/News/2021/Thousands-of-fake-online-pharmacies-shut-down-in-INTERPOL-operation
-
-   -  Counterfeit Drugs : Selling fake or substandard medications that can be harmful.
-   -  Online Scams : Websites offering cheap medications that are either counterfeit or non-existent.
-
-  4.  Kickback Schemes 
-
-In Singapore (SG), several high-profile cases have revealed that doctors were bribed by pharmaceutical companies to prescribe specific medications. 
-In 2019, a group of doctors was investigated for taking bribes in the form of gifts, travel expenses, and financial incentives in exchange for prescribing certain drugs,
-often not the most cost-effective or best options for the patients.
-
-   -  Referral Scams : Healthcare providers receive illegal kickbacks for referring patients to specific labs, clinics, or pharmacies.
-   -  Pharmaceutical Bribes : Doctors are incentivized to prescribe certain medications.
-
-  5.  Ghost Hospitals and Clinics 
-
-Thailand: Thonburi Healthcare Group Investment Scam
-
-In 2024, Dr. Boon Vanasin, former chairman of Thonburi Healthcare Group (THG), was implicated in a fraudulent investment scheme involving fake medical projects across Thailand, Laos, and Vietnam. 
-The scam defrauded approximately 250 investors of about 7.5 billion baht (around $340 million). 
-Dr. Boon fled to China to evade arrest, while his daughter, Navara Vanasin, was detained in connection with the fraud. 
-https://www.news.com.au/travel/travel-updates/incidents/thai-fugitives-daughter-in-custody-amid-340-million-health-scam/news-story/dfb7418ad383a0a5f079f59d09f909d0
-
-   -  Non-Existent Facilities : Fraudsters create fake hospitals or clinics to file insurance claims or attract investments.
-   -  Fly-by-Night Clinics : Set up temporary clinics to defraud patients before disappearing.
-
-  6.  Unlicensed Practitioners 
-   -  Fake Doctors : Individuals posing as licensed professionals offering substandard or harmful treatments.
-   -  Unauthorized Procedures : Performing surgeries or administering treatments without qualifications.
-
-  7.  COVID-19 Related Scams 
-   -  Fake Vaccines and Tests : Selling counterfeit COVID-19 vaccines, fake test kits, or unapproved treatments.
-   -  Phishing Scams : Collecting personal or financial information through fake vaccination registration portals.
-
-  8.  Charity Fraud 
-   -  Bogus Medical Appeals : Fraudulent charities or individuals seeking donations for fabricated medical treatments.
-   -  Misappropriation : Legitimate charities misusing funds for non-medical purposes.
-
-  9.  Telemedicine Fraud 
-   -  Fake Consultations : Charging for online medical consultations that do not take place.
-   -  Unverified Apps : Fraudulent telemedicine platforms collecting personal data or payments without providing real services.
-
-  10.  Over-Prescription and Unnecessary Procedures 
-   -  Exploiting Insurance : Recommending unnecessary surgeries or tests to inflate insurance claims.
-   -  Drug Pushing : Prescribing medications in excessive quantities to profit from pharmaceutical companies.
-
-  11.  Government Program Fraud 
-   -  Embezzlement : Misappropriation of funds allocated to public healthcare programs.
-   -  Ghost Patients : Claiming benefits for non-existent patients under public schemes.
+Purpose	Azure	Databricks	Our service preference and why
+LLMs	Azure Open AI (GPT-3.5-Turbo or GPT-4)	DBRX	Azure Open AI (GPT-3.5-Turbo or GPT-4)
+PDF Parser	Azure Document Intelligence (formerly Azure Form Recognizer)	None	Azure Document Intelligence
+Data Integration Tool	Azure Data Factory	Databricks workflow	Azure Data Factory
+	Azure Databricks		Azure Databricks
+Search and Retrieve	Azure AI Search or Elastic Search	Databricks Vector Search	Azure AI Search
+Storing PDFS	Azure Blob Storage	DBFS may not be as optimized for handling extremely large volumes of unstructured data or for serving as a long-term archival storage solution.	Azure Blob Storage
+DevOps practises	Azure DevOps	Does not provide a dedicated DevOps	Azure DevOps
+Secret & Key Management Services	Azure Key Vault	Does not have an equivalent KMS	Azure Key Vault
+Model Serving	Custom APIs on Azure App Service	Databricks Model Serving	Databricks Model Serving
+APM Service	Azure Application Insights	Does not offer a dedicated application performance management (APM) service	Azure Application Insights
+Web App Hosting Service	Azure App Service	Does not have an equivalent web hosting capabilities	Azure App Service
+Docker registry service	Azure Container Registry	Does not offer a native Docker registry	Azure Container Registry
+Monitoring Microsoft Azure services and products	Azure Monitor		Azure Monitor
