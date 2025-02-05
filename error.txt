@@ -1,4 +1,40 @@
-Purpose	Azure	Databricks	Our service preference and why
+Yes, **Azure Databricks is generally more expensive than Azure Machine Learning** for model deployment, especially for large-scale data processing and real-time model serving. Here’s why:
+
+### **1. Pricing Model Differences**
+| Feature | **Azure Machine Learning** | **Azure Databricks** |
+|---------|---------------------------|----------------------|
+| **Billing Unit** | Based on VM size and usage (pay-as-you-go, reserved instances) | Based on Databricks Units (DBUs) plus cloud compute costs |
+| **Compute Cost** | Direct VM pricing (e.g., DS5_v2: ~$1.50/hr) | DBU cost + VM cost (e.g., All-Purpose Compute: $0.40/DBU + VM price) |
+| **Storage Cost** | Azure Blob Storage, Azure Files | Additional cost for Databricks-managed storage |
+| **Networking** | Standard Azure networking charges | Additional DBU charges for clusters |
+| **Monitoring & Logging** | Azure Monitor, App Insights (low cost) | MLflow, built-in monitoring (DBU cost applies) |
+
+### **2. Cost Differences for Model Serving**
+- **Azure Machine Learning Model Deployment (Standard_DS5_v2)**
+  - Cost: **$1.50 - $2.00 per hour per instance** (varies by region)
+  - Scale: **1 min - 4 max instances**
+  - Best for: **Lightweight ML models, lower cost, easier deployment**
+  
+- **Azure Databricks Model Serving**
+  - CPU cost: **$0.07/DBU/hr** + **Cloud instance cost**
+  - GPU cost: **$1.40 - $62.80 per hour** (for high-end instances)
+  - Best for: **Big data, high-performance analytics, real-time Spark-based ML models**
+  
+### **3. When Databricks is More Expensive**
+- If **you need GPUs**: Databricks charges DBUs per GPU, making it costlier than dedicated Azure ML GPU instances.
+- If **you use interactive clusters**: Always-on clusters for data exploration add unnecessary DBU costs.
+- If **you process large datasets**: Databricks’ Spark-based system incurs more overhead than Azure ML’s optimized inference endpoints.
+
+### **4. When Databricks is Justified Despite the Cost**
+- You need **big data processing + ML** in a unified workflow.
+- You require **real-time streaming predictions** with **Spark integration**.
+- Your team benefits from **collaborative notebooks + MLflow tracking**.
+
+### **Conclusion**
+- **For cost-conscious ML deployments → Azure Machine Learning is cheaper**.
+- **For large-scale, Spark-based ML pipelines → Azure Databricks provides better performance but at a higher cost**.
+
+Would you like an exact cost estimate for your use case? 🚀Purpose	Azure	Databricks	Our service preference and why
 LLMs	Azure Open AI (GPT-3.5-Turbo or GPT-4)	DBRX	Azure Open AI (GPT-3.5-Turbo or GPT-4)
 PDF Parser	Azure Document Intelligence (formerly Azure Form Recognizer)	None	Azure Document Intelligence
 Data Integration Tool	Azure Data Factory	Databricks workflow	Azure Data Factory
